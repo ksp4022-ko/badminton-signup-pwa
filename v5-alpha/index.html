@@ -7,10 +7,10 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-title" content="羽球報名 Alpha">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <title>羽球報名 v5.0.0-alpha.11</title>
+  <title>羽球報名 v5.0.0-alpha.12</title>
   <link rel="manifest" href="./manifest.webmanifest">
-  <link rel="apple-touch-icon" sizes="180x180" href="../icon-180.png?v=5-alpha-11">
-  <link rel="icon" type="image/png" sizes="192x192" href="../icon-192.png?v=5-alpha-11">
+  <link rel="apple-touch-icon" sizes="180x180" href="../icon-180.png?v=5-alpha-12">
+  <link rel="icon" type="image/png" sizes="192x192" href="../icon-192.png?v=5-alpha-12">
   <style>
     :root {
       --ink: #0f172a;
@@ -47,7 +47,7 @@
     .app {
       width: min(100%, 560px);
       margin: 0 auto;
-      padding: calc(14px + env(safe-area-inset-top)) 10px calc(28px + env(safe-area-inset-bottom));
+      padding: calc(14px + env(safe-area-inset-top)) 10px calc(10px + env(safe-area-inset-bottom));
     }
     .hero {
       display: flex;
@@ -186,6 +186,19 @@
     .signup-note { margin: 0; color: #9a3412; font-size: 14px; line-height: 1.45; font-weight: 900; }
     .signup-button { min-height: 62px; border: 0; border-radius: 22px; background: linear-gradient(180deg, #36d66f, #12b95a); color: white; box-shadow: 0 18px 34px rgba(34,197,94,.24); font-size: 24px; font-weight: 1000; }
     .signup-button:disabled { opacity: .55; box-shadow: none; }
+    .season-action-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 12px; }
+    .season-action-button {
+      min-height: 66px;
+      border: 0;
+      border-radius: 22px;
+      color: white;
+      font-size: clamp(22px, 5.5vw, 29px);
+      font-weight: 1000;
+      box-shadow: 0 18px 34px rgba(34,197,94,.2);
+    }
+    .season-action-button.leave-main { background: linear-gradient(180deg, #36d66f, #12b95a); }
+    .season-action-button.return-main { background: linear-gradient(180deg, #35a7ff, #1677e8); box-shadow: 0 18px 34px rgba(10,132,255,.18); }
+    .season-action-note { margin: 10px 0 0; color: #475569; font-size: 14px; line-height: 1.45; font-weight: 900; }
     .section-list { display: grid; gap: 10px; }
     details.roster {
       border-radius: 22px;
@@ -200,10 +213,16 @@
       justify-content: space-between;
       min-height: 68px;
       padding: 14px 16px;
-      font-size: 24px;
+      font-size: 22px;
       font-weight: 1000;
     }
     details.roster summary::-webkit-details-marker { display: none; }
+    .roster-summary-action { display: inline-flex; align-items: center; gap: 8px; min-width: 0; color: #1479d8; }
+    .roster-arrow { width: 24px; color: #64748b; font-size: 21px; line-height: 1; }
+    details.roster .open-label { display: none; }
+    details.roster[open] .closed-label { display: none; }
+    details.roster[open] .open-label { display: inline; }
+    details.roster[open] .roster-arrow { transform: rotate(90deg); }
     .count-pill { min-width: 52px; padding: 6px 12px; border-radius: 999px; background: #e8f2ff; color: #1479d8; text-align: center; }
     .players { display: grid; gap: 8px; padding: 0 12px 14px; }
     .player { display: flex; align-items: center; justify-content: space-between; gap: 10px; min-height: 58px; padding: 10px 12px; border-radius: 16px; background: white; font-size: 22px; font-weight: 950; }
@@ -294,6 +313,23 @@
     .pill.need { background: #fee2e2; color: #b91c1c; }
     .pill.full { background: #dbeafe; color: #1d4ed8; }
     .pill.wait { background: #ffedd5; color: #c2410c; }
+    .member-option {
+      width: 100%;
+      min-height: 72px;
+      margin-bottom: 10px;
+      padding: 14px 16px;
+      border: 2px solid rgba(148,163,184,.2);
+      border-radius: 20px;
+      background: white;
+      color: #0f172a;
+      text-align: left;
+      font-size: 25px;
+      line-height: 1.1;
+      font-weight: 1000;
+      box-shadow: 0 10px 24px rgba(15,23,42,.06);
+    }
+    .member-option small { display: block; margin-top: 4px; color: #64748b; font-size: 14px; font-weight: 900; }
+    .empty-member { padding: 16px; border-radius: 18px; background: #fff7ed; color: #9a3412; font-size: 18px; line-height: 1.4; font-weight: 950; }
     .action-modal {
       position: fixed;
       inset: 0;
@@ -411,6 +447,34 @@
     .action-modal.done .rally-animation,
     .action-modal.error .rally-animation { animation: modalPop .3s ease-out both; }
     .action-modal.error .action-confirm { background: linear-gradient(180deg, #fb7185, #e11d48); }
+    .confirm-modal {
+      position: fixed;
+      inset: 0;
+      z-index: 90;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 22px;
+      background: rgba(15,23,42,.3);
+      backdrop-filter: blur(14px) saturate(1.08);
+    }
+    .confirm-modal.show { display: flex; }
+    .confirm-card {
+      width: min(100%, 430px);
+      padding: 24px;
+      border: 1px solid rgba(255,255,255,.72);
+      border-radius: 30px;
+      background: rgba(255,255,255,.94);
+      box-shadow: 0 28px 76px rgba(15,23,42,.24);
+    }
+    .confirm-title { margin: 0; color: #0f172a; font-size: clamp(32px, 8vw, 42px); line-height: 1.05; font-weight: 1000; }
+    .confirm-name { margin-top: 12px; color: #1479d8; font-size: clamp(28px, 7vw, 36px); line-height: 1.1; font-weight: 1000; }
+    .confirm-message { margin: 12px 0 0; color: #475569; font-size: 20px; line-height: 1.42; font-weight: 900; white-space: pre-line; }
+    .confirm-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 22px; }
+    .confirm-actions button { min-height: 64px; border: 0; border-radius: 20px; font-size: 23px; font-weight: 1000; }
+    .confirm-cancel { background: #e8eef6; color: #334155; }
+    .confirm-ok { background: linear-gradient(180deg, #36d66f, #12b95a); color: white; box-shadow: 0 16px 30px rgba(34,197,94,.22); }
+    .confirm-ok.danger { background: linear-gradient(180deg, #fb7185, #e11d48); box-shadow: 0 16px 30px rgba(225,29,72,.18); }
     .toast { position: fixed; left: 12px; right: 12px; bottom: calc(14px + env(safe-area-inset-bottom)); z-index: 30; display: none; max-width: 520px; margin: 0 auto; padding: 13px 15px; border-radius: 17px; background: rgba(255,255,255,.94); box-shadow: 0 18px 46px rgba(15,23,42,.18); font-size: 17px; font-weight: 900; color: #334155; }
     .toast.show { display: block; }
     .skeleton { position: relative; overflow: hidden; color: transparent !important; background: #eaf1f8 !important; }
@@ -437,9 +501,9 @@
 <body>
   <div class="app">
     <header class="hero">
-      <img src="../icon-180.png?v=5-alpha-11" alt="羽球報名">
+      <img src="../icon-180.png?v=5-alpha-12" alt="羽球報名">
       <h1>羽球報名系統</h1>
-      <div class="version">v5 alpha.11</div>
+      <div class="version">v5 alpha.12</div>
     </header>
 
     <section class="panel">
@@ -472,6 +536,18 @@
     </section>
 
     <section class="panel">
+      <p class="kicker">SEASON MEMBER</p>
+      <div class="title-row">
+        <h2>季打成員操作</h2>
+      </div>
+      <div class="season-action-grid">
+        <button class="season-action-button leave-main" id="openSeasonLeave" type="button">我要請假</button>
+        <button class="season-action-button return-main" id="openSeasonReturn" type="button">恢復出席</button>
+      </div>
+      <p class="season-action-note">請先選擇聚會，再選自己的名字。名單會依目前聚會即時讀取。</p>
+    </section>
+
+    <section class="panel">
       <p class="kicker">WRITE TEST</p>
       <div class="title-row">
         <h2>臨打報名測試</h2>
@@ -493,15 +569,24 @@
       </div>
       <div class="section-list">
         <details class="roster" data-section="confirmed" open>
-          <summary>正式名單 <span class="count-pill" id="confirmedRosterCount">0</span></summary>
+          <summary>
+            <span class="roster-summary-action"><span class="roster-arrow">▶</span><span class="closed-label">查看正式名單</span><span class="open-label">收合正式名單</span></span>
+            <span class="count-pill" id="confirmedRosterCount">0</span>
+          </summary>
           <div class="players" id="confirmedList"></div>
         </details>
         <details class="roster" data-section="waiting">
-          <summary>候補名單 <span class="count-pill" id="waitingRosterCount">0</span></summary>
+          <summary>
+            <span class="roster-summary-action"><span class="roster-arrow">▶</span><span class="closed-label">查看候補名單</span><span class="open-label">收合候補名單</span></span>
+            <span class="count-pill" id="waitingRosterCount">0</span>
+          </summary>
           <div class="players" id="waitingList"></div>
         </details>
         <details class="roster" data-section="leave">
-          <summary>請假名單 <span class="count-pill" id="leaveRosterCount">0</span></summary>
+          <summary>
+            <span class="roster-summary-action"><span class="roster-arrow">▶</span><span class="closed-label">查看季打請假</span><span class="open-label">收合季打請假</span></span>
+            <span class="count-pill" id="leaveRosterCount">0</span>
+          </summary>
           <div class="players" id="leaveList"></div>
         </details>
       </div>
@@ -517,6 +602,15 @@
       <div id="eventOptions"></div>
     </div>
   </div>
+  <div class="sheet" id="memberSheet" aria-hidden="true">
+    <div class="sheet-card">
+      <div class="sheet-head">
+        <h3 id="memberSheetTitle">選擇季打成員</h3>
+        <button class="icon-button" id="closeMemberSheet" type="button" aria-label="關閉">×</button>
+      </div>
+      <div id="memberOptions"></div>
+    </div>
+  </div>
   <div class="toast" id="toast"></div>
   <div class="action-modal" id="actionModal" aria-hidden="true">
     <div class="action-card" role="dialog" aria-modal="true" aria-labelledby="actionTitle">
@@ -530,6 +624,17 @@
       <button class="action-confirm" id="actionConfirm" type="button">確認</button>
     </div>
   </div>
+  <div class="confirm-modal" id="confirmModal" aria-hidden="true">
+    <div class="confirm-card" role="dialog" aria-modal="true" aria-labelledby="confirmTitle">
+      <h3 class="confirm-title" id="confirmTitle">確認操作</h3>
+      <div class="confirm-name" id="confirmName"></div>
+      <p class="confirm-message" id="confirmMessage"></p>
+      <div class="confirm-actions">
+        <button class="confirm-cancel" id="confirmCancel" type="button">取消</button>
+        <button class="confirm-ok" id="confirmOk" type="button">確認</button>
+      </div>
+    </div>
+  </div>
 
   <script>
     const API_BASE = "https://script.google.com/macros/s/AKfycbw1yQZtGYP1YTAMvvrEZPiP8m6_gCb_-lnCKeKHRGOJ1zuFGK0GHxHouJyoqeci-TLnqQ/exec";
@@ -540,7 +645,7 @@
     const state = { events: [], selectedEventId: "", selectedEvent: null, rosterLoaded: false, sections: {}, loadingSections: {}, preloadingRoster: false };
 
     function cacheKey(api, params) {
-      return "v5-alpha.11:" + api + ":" + JSON.stringify(params || {});
+      return "v5-alpha.12:" + api + ":" + JSON.stringify(params || {});
     }
 
     function readCache(api, params) {
@@ -725,11 +830,38 @@
       modal.classList.remove("show", "done", "error");
       modal.setAttribute("aria-hidden", "true");
     }
+    let confirmResolver = null;
+    function showConfirmDialog(options = {}) {
+      return new Promise((resolve) => {
+        const modal = document.getElementById("confirmModal");
+        const ok = document.getElementById("confirmOk");
+        confirmResolver = resolve;
+        document.getElementById("confirmTitle").textContent = options.title || "確認操作";
+        document.getElementById("confirmName").textContent = options.name || "";
+        document.getElementById("confirmMessage").textContent = options.message || "";
+        ok.textContent = options.okText || "確認";
+        ok.classList.toggle("danger", !!options.danger);
+        modal.classList.add("show");
+        modal.setAttribute("aria-hidden", "false");
+      });
+    }
+    function closeConfirmDialog(result) {
+      const modal = document.getElementById("confirmModal");
+      if (modal) {
+        modal.classList.remove("show");
+        modal.setAttribute("aria-hidden", "true");
+      }
+      if (confirmResolver) {
+        const resolve = confirmResolver;
+        confirmResolver = null;
+        resolve(!!result);
+      }
+    }
     function collapseRosterSections() {
       const placeholders = {
         confirmedList: "點開正式名單才讀取名單",
         waitingList: "點開候補名單才讀取名單",
-        leaveList: "點開請假名單才讀取名單"
+        leaveList: "點開季打請假才讀取名單"
       };
       document.querySelectorAll("details.roster").forEach((detail) => { detail.open = false; });
       Object.keys(placeholders).forEach((id) => {
@@ -742,6 +874,8 @@
       document.getElementById("eventName").classList.toggle("skeleton", isBusy);
       document.getElementById("openPicker").disabled = isBusy;
       document.getElementById("quickRefresh").disabled = isBusy;
+      document.getElementById("openSeasonLeave").disabled = isBusy;
+      document.getElementById("openSeasonReturn").disabled = isBusy;
     }
     function formatSyncTime(value) {
       const d = value ? new Date(value) : new Date();
@@ -869,6 +1003,44 @@
       wrap.querySelectorAll(".event-option").forEach((btn) => {
         btn.addEventListener("click", () => selectEvent(btn.dataset.eventId));
       });
+    }
+    function openMemberSheet(mode, players) {
+      const title = mode === "return" ? "選擇恢復出席成員" : "選擇請假的季打成員";
+      const actionText = mode === "return" ? "恢復出席" : "我要請假";
+      const helpText = mode === "return" ? "從目前季打請假名單選擇。" : "從目前正式名單選擇季打成員。";
+      const wrap = document.getElementById("memberOptions");
+      document.getElementById("memberSheetTitle").textContent = title;
+      const fixedPlayers = (players || []).filter((p) => text(p.type) === "fixed");
+      wrap.innerHTML = fixedPlayers.length
+        ? fixedPlayers.map((p) => {
+          const signupId = escapeHtml(p.signupId);
+          const name = escapeHtml(text(p.name, "未命名"));
+          return `<button class="member-option" type="button" data-member-action="${mode}" data-signup-id="${signupId}" data-name="${name}">
+            ${name}
+            <small>${actionText}</small>
+          </button>`;
+        }).join("")
+        : `<div class="empty-member">${helpText}<br>目前沒有可操作的季打成員。</div>`;
+      document.getElementById("memberSheet").classList.add("show");
+      document.getElementById("memberSheet").setAttribute("aria-hidden", "false");
+    }
+    function closeMemberSheet() {
+      const sheet = document.getElementById("memberSheet");
+      sheet.classList.remove("show");
+      sheet.setAttribute("aria-hidden", "true");
+    }
+    async function openSeasonMemberPicker(mode) {
+      if (!state.selectedEventId) return toast("請先選擇聚會");
+      const section = mode === "return" ? "leave" : "confirmed";
+      showActionModal("", "讀取中", "正在讀取季打成員名單，請稍候。");
+      try {
+        const data = await apiFetch("v5RosterSection", { eventId: state.selectedEventId, section }, { force: true });
+        if (!data.ok) throw new Error(data.error || "讀取失敗");
+        closeActionModal();
+        openMemberSheet(mode, data.payload && data.payload.players ? data.payload.players : []);
+      } catch (err) {
+        showActionModal("error", "讀取失敗", err.message || "請稍後再試。");
+      }
     }
     function renderRoster(detail) {
       const lists = [
@@ -1077,7 +1249,14 @@
       if (!state.selectedEventId) return toast("請先選擇聚會");
       if (!signupId) return toast("找不到報名資料");
       const displayName = text(name, "此臨打");
-      if (!window.confirm(`確定要取消「${displayName}」的臨打報名嗎？\n取消後候補會自動重排。`)) return;
+      const ok = await showConfirmDialog({
+        title: "取消臨打報名",
+        name: displayName,
+        message: "取消後候補會自動重排。",
+        okText: "確認取消",
+        danger: true
+      });
+      if (!ok) return;
       button.disabled = true;
       button.textContent = "取消中";
       showMarquee("正在取消臨打報名並重新整理名單...");
@@ -1098,9 +1277,16 @@
     }
     async function fixedLeave(signupId, name, button) {
       if (!state.selectedEventId) return toast("請先選擇聚會");
-      if (!signupId) return toast("找不到固定成員資料");
+      if (!signupId) return toast("找不到季打成員資料");
       const displayName = text(name, "此季打成員");
-      if (!window.confirm(`確定要讓「${displayName}」季打請假嗎？\n請假後會釋出名額，候補會依順位補上。`)) return;
+      const ok = await showConfirmDialog({
+        title: "季打請假",
+        name: displayName,
+        message: "請假後會釋出名額。\n候補會依順位補上。",
+        okText: "確認請假"
+      });
+      if (!ok) return;
+      closeMemberSheet();
       button.disabled = true;
       button.textContent = "請假中";
       showActionModal("", "請假中", "正在寫入季打請假，請不要重複操作。");
@@ -1119,9 +1305,16 @@
     }
     async function fixedReturn(signupId, name, button) {
       if (!state.selectedEventId) return toast("請先選擇聚會");
-      if (!signupId) return toast("找不到固定成員資料");
+      if (!signupId) return toast("找不到季打成員資料");
       const displayName = text(name, "此季打成員");
-      if (!window.confirm(`確定要讓「${displayName}」恢復出席嗎？\n30 分鐘緩衝內會回原順位；超過時間會重新排隊。`)) return;
+      const ok = await showConfirmDialog({
+        title: "恢復出席",
+        name: displayName,
+        message: "30 分鐘緩衝內會回原順位。\n超過時間會重新排隊。",
+        okText: "確認恢復"
+      });
+      if (!ok) return;
+      closeMemberSheet();
       button.disabled = true;
       button.textContent = "恢復中";
       showActionModal("", "恢復中", "正在恢復季打出席，請不要重複操作。");
@@ -1143,7 +1336,14 @@
     document.getElementById("openPicker").addEventListener("click", openPicker);
     document.getElementById("closePicker").addEventListener("click", closePicker);
     document.getElementById("eventSheet").addEventListener("click", (e) => { if (e.target.id === "eventSheet") closePicker(); });
+    document.getElementById("openSeasonLeave").addEventListener("click", () => openSeasonMemberPicker("leave"));
+    document.getElementById("openSeasonReturn").addEventListener("click", () => openSeasonMemberPicker("return"));
+    document.getElementById("closeMemberSheet").addEventListener("click", closeMemberSheet);
+    document.getElementById("memberSheet").addEventListener("click", (e) => { if (e.target.id === "memberSheet") closeMemberSheet(); });
     document.getElementById("actionConfirm").addEventListener("click", closeActionModal);
+    document.getElementById("confirmCancel").addEventListener("click", () => closeConfirmDialog(false));
+    document.getElementById("confirmOk").addEventListener("click", () => closeConfirmDialog(true));
+    document.getElementById("confirmModal").addEventListener("click", (e) => { if (e.target.id === "confirmModal") closeConfirmDialog(false); });
     document.getElementById("quickRefresh").addEventListener("click", async () => {
       showMarquee("正在同步最新聚會資料，請稍候...");
       setBusy(true);
@@ -1171,6 +1371,14 @@
       if (seasonLeaveButton) fixedLeave(seasonLeaveButton.dataset.signupId, seasonLeaveButton.dataset.name, seasonLeaveButton);
       const seasonReturnButton = event.target.closest(".season-return");
       if (seasonReturnButton) fixedReturn(seasonReturnButton.dataset.signupId, seasonReturnButton.dataset.name, seasonReturnButton);
+      const memberButton = event.target.closest(".member-option");
+      if (memberButton) {
+        if (memberButton.dataset.memberAction === "return") {
+          fixedReturn(memberButton.dataset.signupId, memberButton.dataset.name, memberButton);
+        } else {
+          fixedLeave(memberButton.dataset.signupId, memberButton.dataset.name, memberButton);
+        }
+      }
     });
     document.querySelectorAll("details.roster").forEach((detail) => {
       detail.addEventListener("toggle", () => {
