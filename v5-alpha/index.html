@@ -7,10 +7,10 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-title" content="羽球報名 Alpha">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <title>羽球報名 v5.0.0-alpha.1</title>
+  <title>羽球報名 v5.0.0-alpha.2</title>
   <link rel="manifest" href="./manifest.webmanifest">
-  <link rel="apple-touch-icon" sizes="180x180" href="../icon-180.png?v=5-alpha-1">
-  <link rel="icon" type="image/png" sizes="192x192" href="../icon-192.png?v=5-alpha-1">
+  <link rel="apple-touch-icon" sizes="180x180" href="../icon-180.png?v=5-alpha-2">
+  <link rel="icon" type="image/png" sizes="192x192" href="../icon-192.png?v=5-alpha-2">
   <style>
     :root {
       --ink: #0f172a;
@@ -141,6 +141,7 @@
     .stat.remain .num { color: var(--red); }
     .stat.wait .num { color: #d97706; }
     .status-strip { margin-top: 10px; padding: 12px 14px; border-radius: 17px; background: rgba(255,255,255,.9); color: #17437a; font-size: 19px; line-height: 1.35; font-weight: 950; }
+    .sync-line { margin-top: 8px; color: #64748b; font-size: 14px; line-height: 1.35; font-weight: 900; text-align: right; }
     .section-list { display: grid; gap: 10px; }
     details.roster {
       border-radius: 22px;
@@ -202,6 +203,7 @@
     .event-option-main { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; }
     .event-option-name { min-width: 0; font-size: 32px; line-height: 1.08; font-weight: 1000; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
     .event-option-meta { margin-top: 8px; color: #334155; font-size: 18px; line-height: 1.2; font-weight: 950; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .event-option-extra { margin-top: 8px; display: flex; align-items: center; justify-content: space-between; gap: 8px; color: #9a3412; font-size: 16px; line-height: 1.15; font-weight: 950; }
     .pill { flex: 0 0 auto; padding: 7px 10px; border-radius: 999px; font-size: 14px; line-height: 1; font-weight: 1000; white-space: nowrap; }
     .pill.need { background: #fee2e2; color: #b91c1c; }
     .pill.full { background: #dbeafe; color: #1d4ed8; }
@@ -218,7 +220,7 @@
 <body>
   <div class="app">
     <header class="hero">
-      <img src="../icon-180.png?v=5-alpha-1" alt="羽球報名">
+      <img src="../icon-180.png?v=5-alpha-2" alt="羽球報名">
       <h1>羽球報名系統</h1>
       <div class="version">v5 alpha</div>
     </header>
@@ -249,24 +251,25 @@
         <div class="stat wait"><span class="num" id="waitingCount">0</span><span class="label">候補</span></div>
       </div>
       <div class="status-strip" id="statusText">Alpha 讀取版：目前不寫入資料。</div>
+      <div class="sync-line" id="syncTime">資料尚未更新</div>
     </section>
 
     <section class="panel">
       <p class="kicker">READ ONLY</p>
       <div class="title-row">
         <h2>名單預覽</h2>
-        <button class="small-button" id="loadRoster" type="button">讀取</button>
+        <button class="small-button" id="loadRoster" type="button">更新已開啟</button>
       </div>
       <div class="section-list">
-        <details class="roster" open>
+        <details class="roster" data-section="confirmed" open>
           <summary>正式名單 <span class="count-pill" id="confirmedRosterCount">0</span></summary>
           <div class="players" id="confirmedList"></div>
         </details>
-        <details class="roster">
+        <details class="roster" data-section="waiting">
           <summary>候補名單 <span class="count-pill" id="waitingRosterCount">0</span></summary>
           <div class="players" id="waitingList"></div>
         </details>
-        <details class="roster">
+        <details class="roster" data-section="leave">
           <summary>請假名單 <span class="count-pill" id="leaveRosterCount">0</span></summary>
           <div class="players" id="leaveList"></div>
         </details>
@@ -288,7 +291,40 @@
   <script>
     const API_BASE = "https://script.google.com/macros/s/AKfycbw1yQZtGYP1YTAMvvrEZPiP8m6_gCb_-lnCKeKHRGOJ1zuFGK0GHxHouJyoqeci-TLnqQ/exec";
     const SITE = "kangxuan";
-    const state = { events: [], selectedEventId: "", selectedEvent: null, rosterLoaded: false };
+    const CACHE_TTL_MS = 30000;
+    const state = { events: [], selectedEventId: "", selectedEvent: null, rosterLoaded: false, sections: {} };
+
+    function cacheKey(api, params) {
+      return "v5-alpha.2:" + api + ":" + JSON.stringify(params || {});
+    }
+
+    function readCache(api, params) {
+      try {
+        const raw = sessionStorage.getItem(cacheKey(api, params));
+        if (!raw) return null;
+        const item = JSON.parse(raw);
+        if (!item || !item.savedAt || Date.now() - item.savedAt > CACHE_TTL_MS) return null;
+        return item.data;
+      } catch (err) {
+        return null;
+      }
+    }
+
+    function writeCache(api, params, data) {
+      try {
+        sessionStorage.setItem(cacheKey(api, params), JSON.stringify({ savedAt: Date.now(), data }));
+      } catch (err) {}
+    }
+
+    async function apiFetch(api, params = {}, options = {}) {
+      if (!options.force) {
+        const cached = readCache(api, params);
+        if (cached) return Object.assign({}, cached, { fromCache: true });
+      }
+      const data = await jsonp(api, Object.assign({}, params, { t: Date.now() }));
+      writeCache(api, params, data);
+      return data;
+    }
 
     function jsonp(api, params = {}) {
       return new Promise((resolve, reject) => {
@@ -336,6 +372,11 @@
       const group = text(event.groupName, "");
       return [formatDate(event.eventDate), weekday(event.eventDate), group].filter(Boolean).join("｜");
     }
+    function eventExtra(event) {
+      const fee = Number(event.tempFee) || 0;
+      const max = Number(event.maxPeople) || 0;
+      return `零打 ${fee}元 · 上限 ${max}人`;
+    }
     function pill(event) {
       const remain = Number(event.remainCount) || 0;
       const waiting = Number(event.waitingCount) || 0;
@@ -353,7 +394,20 @@
     function setBusy(isBusy) {
       document.getElementById("eventName").classList.toggle("skeleton", isBusy);
     }
+    function formatSyncTime(value) {
+      const d = value ? new Date(value) : new Date();
+      if (Number.isNaN(d.getTime())) return "資料已更新";
+      const hh = String(d.getHours()).padStart(2, "0");
+      const mm = String(d.getMinutes()).padStart(2, "0");
+      const ss = String(d.getSeconds()).padStart(2, "0");
+      return `資料更新於 ${hh}:${mm}:${ss}`;
+    }
+    function updateSyncTime(data) {
+      const suffix = data && data.fromCache ? "（快取）" : "";
+      document.getElementById("syncTime").textContent = formatSyncTime(data && data.generatedAt) + suffix;
+    }
     function renderEvent(detail) {
+      detail = detail || {};
       const event = detail && detail.event ? detail.event : {};
       state.selectedEvent = detail;
       document.getElementById("eventName").textContent = optionTitle(event);
@@ -383,6 +437,7 @@
             ${pill(event)}
           </div>
           <div class="event-option-meta">${meta(event)}</div>
+          <div class="event-option-extra"><span>${eventExtra(event)}</span><span>${Number(event.confirmedCount) || 0} 已報</span></div>
         </button>`;
       }).join("");
       wrap.querySelectorAll(".event-option").forEach((btn) => {
@@ -398,20 +453,40 @@
       lists.forEach(([key, listId, countId]) => {
         const players = detail && detail[key] ? detail[key] : [];
         document.getElementById(countId).textContent = players.length || Number(detail && detail[key + "Count"]) || 0;
-        document.getElementById(listId).innerHTML = players.length
-          ? players.map((p, index) => `<div class="player"><span class="order">${Number(p.orderNo) || index + 1}</span><span>${text(p.name, "未命名")}</span></div>`).join("")
-          : `<div class="player"><span class="order">-</span><span>尚未讀取或目前無資料</span></div>`;
+        if (players.length) {
+          renderSectionPlayers(key, players);
+        } else if (!state.sections[key]) {
+          document.getElementById(listId).innerHTML = `<div class="player"><span class="order">-</span><span>點開此區才讀取名單</span></div>`;
+        }
       });
     }
-    async function loadInit() {
+    function renderSectionPlayers(section, players) {
+      const idMap = { confirmed: "confirmedList", waiting: "waitingList", leave: "leaveList" };
+      const list = document.getElementById(idMap[section]);
+      if (!list) return;
+      list.innerHTML = players && players.length
+        ? players.map((p, index) => `<div class="player"><span class="order">${Number(p.orderNo) || index + 1}</span><span>${text(p.name, "未命名")}</span></div>`).join("")
+        : `<div class="player"><span class="order">-</span><span>目前無資料</span></div>`;
+      state.sections[section] = true;
+    }
+    async function loadInit(options = {}) {
       setBusy(true);
       try {
-        const data = await jsonp("v5Init");
+        const data = await apiFetch("v5Init", {}, options);
         if (!data.ok) throw new Error(data.error || "後端回傳錯誤");
         state.events = data.payload.events || [];
         state.selectedEventId = data.payload.selectedEventId || (state.events[0] && state.events[0].eventId) || "";
-        renderEvent(data.payload.selectedEvent);
-        toast("已讀取正式資料");
+        state.sections = {};
+        renderEvent(data.payload.selectedEvent || {
+          event: state.events.find((event) => event.eventId === state.selectedEventId) || {},
+          confirmedCount: 0,
+          waitingCount: 0,
+          leaveCount: 0,
+          remainCount: 0,
+          partial: true
+        });
+        updateSyncTime(data);
+        toast(data.fromCache ? "已使用快取資料" : "已讀取正式資料");
       } catch (err) {
         document.getElementById("eventName").textContent = "讀取失敗";
         document.getElementById("statusText").textContent = err.message || String(err);
@@ -423,12 +498,14 @@
     async function selectEvent(eventId) {
       if (!eventId) return;
       state.selectedEventId = eventId;
+      state.sections = {};
       closePicker();
       setBusy(true);
       try {
-        const data = await jsonp("v5EventBasic", { eventId });
+        const data = await apiFetch("v5EventBasic", { eventId });
         if (!data.ok) throw new Error(data.error || "後端回傳錯誤");
         renderEvent(data.payload);
+        updateSyncTime(data);
         toast("已切換聚會");
       } catch (err) {
         toast(err.message || "切換失敗");
@@ -437,17 +514,31 @@
       }
     }
     async function loadRoster() {
+      const openSections = Array.from(document.querySelectorAll("details.roster[open]")).map((el) => el.dataset.section);
+      if (!openSections.length) return toast("請先展開要讀取的名單");
+      for (const section of openSections) {
+        await loadRosterSection(section, { force: true });
+      }
+      toast("已更新開啟中的名單");
+    }
+    async function loadRosterSection(section, options = {}) {
       if (!state.selectedEventId) return toast("請先選擇聚會");
-      setBusy(true);
+      const idMap = { confirmed: "confirmedList", waiting: "waitingList", leave: "leaveList" };
+      const list = document.getElementById(idMap[section]);
+      if (list) list.innerHTML = `<div class="player"><span class="order">...</span><span>正在讀取</span></div>`;
       try {
-        const data = await jsonp("v5EventRoster", { eventId: state.selectedEventId });
+        const data = await apiFetch("v5RosterSection", { eventId: state.selectedEventId, section }, options);
         if (!data.ok) throw new Error(data.error || "後端回傳錯誤");
-        renderEvent(data.payload);
-        toast("名單已更新");
+        document.getElementById("confirmedCount").textContent = Number(data.payload.confirmedCount) || 0;
+        document.getElementById("remainCount").textContent = Number(data.payload.remainCount) || 0;
+        document.getElementById("waitingCount").textContent = Number(data.payload.waitingCount) || 0;
+        document.getElementById("confirmedRosterCount").textContent = Number(data.payload.confirmedCount) || 0;
+        document.getElementById("waitingRosterCount").textContent = Number(data.payload.waitingCount) || 0;
+        document.getElementById("leaveRosterCount").textContent = Number(data.payload.leaveCount) || 0;
+        renderSectionPlayers(section, data.payload.players || []);
+        updateSyncTime(data);
       } catch (err) {
-        toast(err.message || "名單讀取失敗");
-      } finally {
-        setBusy(false);
+        if (list) list.innerHTML = `<div class="player"><span class="order">!</span><span>${text(err.message, "名單讀取失敗")}</span></div>`;
       }
     }
     function openPicker() { document.getElementById("eventSheet").classList.add("show"); renderOptions(); }
@@ -455,10 +546,16 @@
     document.getElementById("openPicker").addEventListener("click", openPicker);
     document.getElementById("closePicker").addEventListener("click", closePicker);
     document.getElementById("eventSheet").addEventListener("click", (e) => { if (e.target.id === "eventSheet") closePicker(); });
-    document.getElementById("refreshBtn").addEventListener("click", loadInit);
-    document.getElementById("quickRefresh").addEventListener("click", loadInit);
+    document.getElementById("refreshBtn").addEventListener("click", () => loadInit({ force: true }));
+    document.getElementById("quickRefresh").addEventListener("click", () => loadInit({ force: true }));
     document.getElementById("loadRoster").addEventListener("click", loadRoster);
-    loadInit();
+    document.querySelectorAll("details.roster").forEach((detail) => {
+      detail.addEventListener("toggle", () => {
+        const section = detail.dataset.section;
+        if (detail.open && section && !state.sections[section]) loadRosterSection(section);
+      });
+    });
+    loadInit().then(() => loadRosterSection("confirmed"));
   </script>
 </body>
 </html>
