@@ -7,10 +7,10 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-title" content="羽球報名 Alpha">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <title>羽球報名 v5.0.0-alpha.4</title>
+  <title>羽球報名 v5.0.0-alpha.5</title>
   <link rel="manifest" href="./manifest.webmanifest">
-  <link rel="apple-touch-icon" sizes="180x180" href="../icon-180.png?v=5-alpha-4">
-  <link rel="icon" type="image/png" sizes="192x192" href="../icon-192.png?v=5-alpha-4">
+  <link rel="apple-touch-icon" sizes="180x180" href="../icon-180.png?v=5-alpha-5">
+  <link rel="icon" type="image/png" sizes="192x192" href="../icon-192.png?v=5-alpha-5">
   <style>
     :root {
       --ink: #0f172a;
@@ -87,6 +87,15 @@
     }
     .icon-button { width: 58px; height: 58px; font-size: 25px; }
     .button-row { display: grid; grid-template-columns: minmax(0, 1fr) 58px; gap: 10px; }
+    .roster-refresh {
+      width: 100%;
+      min-height: 58px;
+      border-radius: 18px;
+      background: linear-gradient(180deg, #35a7ff, #1677e8);
+      color: white;
+      font-size: 21px;
+      box-shadow: 0 14px 28px rgba(10,132,255,.2);
+    }
     .primary {
       min-height: 72px;
       border: 0;
@@ -141,6 +150,30 @@
     .stat.remain .num { color: var(--red); }
     .stat.wait .num { color: #d97706; }
     .status-strip { margin-top: 10px; padding: 12px 14px; border-radius: 17px; background: rgba(255,255,255,.9); color: #17437a; font-size: 19px; line-height: 1.35; font-weight: 950; }
+    .marquee-strip {
+      display: none;
+      position: relative;
+      min-height: 50px;
+      margin-top: 12px;
+      overflow: hidden;
+      border: 1px solid rgba(37,99,235,.16);
+      border-radius: 17px;
+      background: linear-gradient(135deg, #eff6ff, #dff1ff);
+      color: #1d4ed8;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.8);
+    }
+    .marquee-strip.show { display: block; }
+    .marquee-text {
+      position: absolute;
+      left: 100%;
+      top: 50%;
+      transform: translateY(-50%);
+      white-space: nowrap;
+      font-size: 20px;
+      line-height: 1;
+      font-weight: 1000;
+      animation: marqueeMove 10s linear infinite;
+    }
     .sync-line { margin-top: 8px; color: #64748b; font-size: 14px; line-height: 1.35; font-weight: 900; text-align: right; }
     .signup-card { display: grid; gap: 10px; margin-top: 12px; }
     .signup-card label { display: grid; gap: 6px; color: #475569; font-size: 15px; font-weight: 950; }
@@ -235,6 +268,7 @@
     .skeleton { position: relative; overflow: hidden; color: transparent !important; background: #eaf1f8 !important; }
     .skeleton::after { content: ""; position: absolute; inset: 0; transform: translateX(-100%); background: linear-gradient(90deg, transparent, rgba(255,255,255,.7), transparent); animation: shimmer 1.2s infinite; }
     @keyframes shimmer { to { transform: translateX(100%); } }
+    @keyframes marqueeMove { from { left: 100%; } to { left: -120%; } }
     @keyframes rise { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
     @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; } }
   </style>
@@ -242,21 +276,21 @@
 <body>
   <div class="app">
     <header class="hero">
-      <img src="../icon-180.png?v=5-alpha-4" alt="羽球報名">
+      <img src="../icon-180.png?v=5-alpha-5" alt="羽球報名">
       <h1>羽球報名系統</h1>
-      <div class="version">v5 alpha.4</div>
+      <div class="version">v5 alpha.5</div>
     </header>
 
     <section class="panel">
       <p class="kicker">CURRENT EVENT</p>
       <div class="title-row">
         <h2>目前聚會資訊</h2>
-        <button class="icon-button" id="refreshBtn" type="button" aria-label="重新整理">↻</button>
       </div>
       <div class="button-row">
         <button class="primary" id="openPicker" type="button">選擇聚會</button>
         <button class="icon-button" id="quickRefresh" type="button" aria-label="重新整理">🔄</button>
       </div>
+      <div class="marquee-strip" id="syncMarquee" aria-live="polite"><div class="marquee-text" id="syncMarqueeText">正在同步最新資料，請稍候...</div></div>
       <article class="event-card">
         <div class="event-name" id="eventName">正在讀取聚會</div>
         <div class="info-list">
@@ -294,7 +328,7 @@
       <p class="kicker">READ ONLY</p>
       <div class="title-row">
         <h2>名單預覽</h2>
-        <button class="small-button" id="loadRoster" type="button">更新已開啟</button>
+        <button class="small-button roster-refresh" id="loadRoster" type="button">🔄 重新整理已開啟名單</button>
       </div>
       <div class="section-list">
         <details class="roster" data-section="confirmed" open>
@@ -331,7 +365,7 @@
     const state = { events: [], selectedEventId: "", selectedEvent: null, rosterLoaded: false, sections: {} };
 
     function cacheKey(api, params) {
-      return "v5-alpha.4:" + api + ":" + JSON.stringify(params || {});
+      return "v5-alpha.5:" + api + ":" + JSON.stringify(params || {});
     }
 
     function readCache(api, params) {
@@ -448,8 +482,21 @@
       window.clearTimeout(toast._timer);
       toast._timer = window.setTimeout(() => el.classList.remove("show"), 2600);
     }
+    function showMarquee(message) {
+      const strip = document.getElementById("syncMarquee");
+      const textEl = document.getElementById("syncMarqueeText");
+      if (!strip || !textEl) return;
+      textEl.textContent = message || "正在同步最新資料，請稍候...";
+      strip.classList.add("show");
+    }
+    function hideMarquee() {
+      const strip = document.getElementById("syncMarquee");
+      if (strip) strip.classList.remove("show");
+    }
     function setBusy(isBusy) {
       document.getElementById("eventName").classList.toggle("skeleton", isBusy);
+      document.getElementById("openPicker").disabled = isBusy;
+      document.getElementById("quickRefresh").disabled = isBusy;
     }
     function formatSyncTime(value) {
       const d = value ? new Date(value) : new Date();
@@ -483,6 +530,47 @@
         : "Alpha 寫入測試：名單已同步正式資料，可測試臨打報名。";
       renderRoster(detail);
       renderOptions();
+    }
+    function mergeSelectedEventSummary(detail) {
+      if (!detail || !detail.event || !detail.event.eventId) return;
+      const eventId = detail.event.eventId;
+      state.events = state.events.map((event) => {
+        if (event.eventId !== eventId) return event;
+        return Object.assign({}, event, detail.event, {
+          confirmedCount: Number(detail.confirmedCount) || 0,
+          waitingCount: Number(detail.waitingCount) || 0,
+          leaveCount: Number(detail.leaveCount) || 0,
+          remainCount: Number(detail.remainCount) || 0
+        });
+      });
+    }
+    async function refreshCurrentEvent(options = {}) {
+      if (!state.selectedEventId) return;
+      const data = await apiFetch("v5EventBasic", { eventId: state.selectedEventId }, { force: true });
+      if (!data.ok) throw new Error(data.error || "後端回傳錯誤");
+      mergeSelectedEventSummary(data.payload);
+      renderEvent(data.payload);
+      updateSyncTime(data);
+      return data.payload;
+    }
+    async function refreshOpenRosterSections(preferredSection) {
+      const openSections = Array.from(document.querySelectorAll("details.roster[open]")).map((el) => el.dataset.section);
+      if (preferredSection && openSections.indexOf(preferredSection) < 0) openSections.unshift(preferredSection);
+      const uniqueSections = Array.from(new Set(openSections.filter(Boolean)));
+      for (const section of uniqueSections) {
+        const target = document.querySelector(`details.roster[data-section="${section}"]`);
+        if (target) target.open = true;
+        await loadRosterSection(section, { force: true, silent: true });
+      }
+    }
+    async function syncAfterWrite(message, preferredSection) {
+      showMarquee(message || "正在更新名單與人數，請稍候...");
+      try {
+        await refreshCurrentEvent({ force: true });
+        await refreshOpenRosterSections(preferredSection);
+      } finally {
+        hideMarquee();
+      }
     }
     function renderOptions() {
       const wrap = document.getElementById("eventOptions");
@@ -565,10 +653,15 @@
       state.selectedEventId = eventId;
       state.sections = {};
       closePicker();
+      document.getElementById("eventName").textContent = "正在讀取聚會資料...";
+      document.getElementById("statusText").textContent = "正在更新聚會與名單，請稍候";
+      ["confirmedCount","remainCount","waitingCount"].forEach((id) => document.getElementById(id).textContent = "...");
+      showMarquee("正在讀取聚會資料，請稍候...");
       setBusy(true);
       try {
-        const data = await apiFetch("v5EventBasic", { eventId });
+        const data = await apiFetch("v5EventBasic", { eventId }, { force: true });
         if (!data.ok) throw new Error(data.error || "後端回傳錯誤");
+        mergeSelectedEventSummary(data.payload);
         renderEvent(data.payload);
         updateSyncTime(data);
         toast("已切換聚會");
@@ -576,15 +669,22 @@
         toast(err.message || "切換失敗");
       } finally {
         setBusy(false);
+        hideMarquee();
       }
     }
     async function loadRoster() {
       const openSections = Array.from(document.querySelectorAll("details.roster[open]")).map((el) => el.dataset.section);
       if (!openSections.length) return toast("請先展開要讀取的名單");
-      for (const section of openSections) {
-        await loadRosterSection(section, { force: true });
+      showMarquee("正在重新整理已開啟名單，請稍候...");
+      try {
+        await refreshCurrentEvent({ force: true });
+        for (const section of openSections) {
+          await loadRosterSection(section, { force: true, silent: true });
+        }
+        toast("已更新開啟中的名單");
+      } finally {
+        hideMarquee();
       }
-      toast("已更新開啟中的名單");
     }
     async function loadRosterSection(section, options = {}) {
       if (!state.selectedEventId) return toast("請先選擇聚會");
@@ -604,6 +704,7 @@
         updateSyncTime(data);
       } catch (err) {
         if (list) list.innerHTML = `<div class="player"><span class="order">!</span><span>${text(err.message, "名單讀取失敗")}</span></div>`;
+        if (!options.silent) toast(err.message || "名單讀取失敗");
       }
     }
     async function submitSignup() {
@@ -614,6 +715,7 @@
       if (!name) return toast("請輸入姓名");
       button.disabled = true;
       button.textContent = "報名中...";
+      showMarquee("正在送出臨打報名，請不要重複點擊...");
       try {
         const data = await apiWrite("v5SignupTemp", { eventId: state.selectedEventId, name, phone: "" });
         if (!data.ok) throw new Error(data.error || "報名失敗");
@@ -624,11 +726,12 @@
         const section = status.indexOf("候補") >= 0 ? "waiting" : "confirmed";
         const target = document.querySelector(`details.roster[data-section="${section}"]`);
         if (target) target.open = true;
-        await loadRosterSection(section, { force: true });
-        toast(status ? `報名成功：${status}` : "報名成功");
+        await syncAfterWrite("報名成功，正在更新名單與人數...", section);
+        toast(status ? `報名成功：${status}，名單已更新` : "報名成功，名單已更新");
       } catch (err) {
         toast(err.message || "報名失敗");
       } finally {
+        hideMarquee();
         button.disabled = false;
         button.textContent = "✅ 我要報名";
       }
@@ -640,20 +743,19 @@
       if (!window.confirm(`確定要取消「${displayName}」的臨打報名嗎？\n取消後候補會自動重排。`)) return;
       button.disabled = true;
       button.textContent = "取消中";
+      showMarquee("正在取消臨打報名並重新整理名單...");
       try {
         const data = await apiWrite("v5CancelTempSignup", { eventId: state.selectedEventId, signupId });
         if (!data.ok) throw new Error(data.error || "取消失敗");
         state.sections = {};
-        if (data.payload && data.payload.detail) renderEvent(data.payload.detail);
         const confirmed = document.querySelector('details.roster[data-section="confirmed"]');
         if (confirmed) confirmed.open = true;
-        await loadRosterSection("confirmed", { force: true });
-        const waiting = document.querySelector('details.roster[data-section="waiting"]');
-        if (waiting && waiting.open) await loadRosterSection("waiting", { force: true });
+        await syncAfterWrite("取消成功，正在重新整理名單...", "confirmed");
         toast(data.payload && data.payload.message ? data.payload.message : "已取消報名");
       } catch (err) {
         toast(err.message || "取消失敗");
       } finally {
+        hideMarquee();
         button.disabled = false;
         button.textContent = "取消";
       }
@@ -663,8 +765,20 @@
     document.getElementById("openPicker").addEventListener("click", openPicker);
     document.getElementById("closePicker").addEventListener("click", closePicker);
     document.getElementById("eventSheet").addEventListener("click", (e) => { if (e.target.id === "eventSheet") closePicker(); });
-    document.getElementById("refreshBtn").addEventListener("click", () => loadInit({ force: true }));
-    document.getElementById("quickRefresh").addEventListener("click", () => loadInit({ force: true }));
+    document.getElementById("quickRefresh").addEventListener("click", async () => {
+      showMarquee("正在同步最新聚會資料，請稍候...");
+      setBusy(true);
+      try {
+        await refreshCurrentEvent({ force: true });
+        await refreshOpenRosterSections();
+        toast("已同步最新資料");
+      } catch (err) {
+        toast(err.message || "同步失敗");
+      } finally {
+        setBusy(false);
+        hideMarquee();
+      }
+    });
     document.getElementById("loadRoster").addEventListener("click", loadRoster);
     document.getElementById("submitSignup").addEventListener("click", submitSignup);
     document.addEventListener("click", (event) => {
