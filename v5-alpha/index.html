@@ -7,10 +7,10 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-title" content="羽球報名 Alpha">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <title>羽球報名 v5.0.0-alpha.2</title>
+  <title>羽球報名 v5.0.0-alpha.3</title>
   <link rel="manifest" href="./manifest.webmanifest">
-  <link rel="apple-touch-icon" sizes="180x180" href="../icon-180.png?v=5-alpha-2">
-  <link rel="icon" type="image/png" sizes="192x192" href="../icon-192.png?v=5-alpha-2">
+  <link rel="apple-touch-icon" sizes="180x180" href="../icon-180.png?v=5-alpha-3">
+  <link rel="icon" type="image/png" sizes="192x192" href="../icon-192.png?v=5-alpha-3">
   <style>
     :root {
       --ink: #0f172a;
@@ -142,6 +142,13 @@
     .stat.wait .num { color: #d97706; }
     .status-strip { margin-top: 10px; padding: 12px 14px; border-radius: 17px; background: rgba(255,255,255,.9); color: #17437a; font-size: 19px; line-height: 1.35; font-weight: 950; }
     .sync-line { margin-top: 8px; color: #64748b; font-size: 14px; line-height: 1.35; font-weight: 900; text-align: right; }
+    .signup-card { display: grid; gap: 10px; margin-top: 12px; }
+    .signup-card label { display: grid; gap: 6px; color: #475569; font-size: 15px; font-weight: 950; }
+    .signup-card input { width: 100%; min-height: 56px; border: 1px solid rgba(148,163,184,.28); border-radius: 18px; background: rgba(255,255,255,.95); padding: 0 16px; color: #0f172a; font-size: 22px; font-weight: 950; outline: none; box-sizing: border-box; }
+    .signup-card input:focus { border-color: rgba(30,128,255,.7); box-shadow: 0 0 0 4px rgba(30,128,255,.12); }
+    .signup-note { margin: 0; color: #9a3412; font-size: 14px; line-height: 1.45; font-weight: 900; }
+    .signup-button { min-height: 62px; border: 0; border-radius: 22px; background: linear-gradient(180deg, #36d66f, #12b95a); color: white; box-shadow: 0 18px 34px rgba(34,197,94,.24); font-size: 24px; font-weight: 1000; }
+    .signup-button:disabled { opacity: .55; box-shadow: none; }
     .section-list { display: grid; gap: 10px; }
     details.roster {
       border-radius: 22px;
@@ -220,9 +227,9 @@
 <body>
   <div class="app">
     <header class="hero">
-      <img src="../icon-180.png?v=5-alpha-2" alt="羽球報名">
+      <img src="../icon-180.png?v=5-alpha-3" alt="羽球報名">
       <h1>羽球報名系統</h1>
-      <div class="version">v5 alpha</div>
+      <div class="version">v5 alpha.3</div>
     </header>
 
     <section class="panel">
@@ -250,8 +257,22 @@
         <div class="stat remain"><span class="num" id="remainCount">0</span><span class="label">尚缺</span></div>
         <div class="stat wait"><span class="num" id="waitingCount">0</span><span class="label">候補</span></div>
       </div>
-      <div class="status-strip" id="statusText">Alpha 讀取版：目前不寫入資料。</div>
+      <div class="status-strip" id="statusText">Alpha 寫入測試：臨打報名會寫入正式資料。</div>
       <div class="sync-line" id="syncTime">資料尚未更新</div>
+    </section>
+
+    <section class="panel">
+      <p class="kicker">WRITE TEST</p>
+      <div class="title-row">
+        <h2>臨打報名測試</h2>
+      </div>
+      <div class="signup-card">
+        <label>姓名
+          <input id="signupName" autocomplete="name" placeholder="請輸入姓名">
+        </label>
+        <button class="signup-button" id="submitSignup" type="button">✅ 我要報名</button>
+        <p class="signup-note">此測試會寫入正式 Google Sheet。請用真實姓名，避免重複報名。</p>
+      </div>
     </section>
 
     <section class="panel">
@@ -295,7 +316,7 @@
     const state = { events: [], selectedEventId: "", selectedEvent: null, rosterLoaded: false, sections: {} };
 
     function cacheKey(api, params) {
-      return "v5-alpha.2:" + api + ":" + JSON.stringify(params || {});
+      return "v5-alpha.3:" + api + ":" + JSON.stringify(params || {});
     }
 
     function readCache(api, params) {
@@ -324,6 +345,18 @@
       const data = await jsonp(api, Object.assign({}, params, { t: Date.now() }));
       writeCache(api, params, data);
       return data;
+    }
+    async function apiWrite(api, params = {}) {
+      const data = await jsonp(api, Object.assign({}, params, { t: Date.now() }));
+      clearAlphaCache();
+      return data;
+    }
+    function clearAlphaCache() {
+      try {
+        Object.keys(sessionStorage).forEach((key) => {
+          if (key.indexOf("v5-alpha.") === 0) sessionStorage.removeItem(key);
+        });
+      } catch (err) {}
     }
 
     function jsonp(api, params = {}) {
@@ -422,8 +455,8 @@
       document.getElementById("eventNoteRow").hidden = !note;
       document.getElementById("eventNote").textContent = note;
       document.getElementById("statusText").textContent = detail.partial
-        ? "Alpha 讀取版：摘要已同步正式資料，名單可手動讀取。"
-        : "Alpha 讀取版：名單已同步正式資料。";
+        ? "Alpha 寫入測試：摘要已同步正式資料，可測試臨打報名。"
+        : "Alpha 寫入測試：名單已同步正式資料，可測試臨打報名。";
       renderRoster(detail);
       renderOptions();
     }
@@ -541,6 +574,33 @@
         if (list) list.innerHTML = `<div class="player"><span class="order">!</span><span>${text(err.message, "名單讀取失敗")}</span></div>`;
       }
     }
+    async function submitSignup() {
+      if (!state.selectedEventId) return toast("請先選擇聚會");
+      const input = document.getElementById("signupName");
+      const button = document.getElementById("submitSignup");
+      const name = input.value.trim();
+      if (!name) return toast("請輸入姓名");
+      button.disabled = true;
+      button.textContent = "報名中...";
+      try {
+        const data = await apiWrite("v5SignupTemp", { eventId: state.selectedEventId, name, phone: "" });
+        if (!data.ok) throw new Error(data.error || "報名失敗");
+        input.value = "";
+        state.sections = {};
+        if (data.payload && data.payload.detail) renderEvent(data.payload.detail);
+        const status = data.payload && data.payload.signedStatus ? data.payload.signedStatus : "";
+        const section = status.indexOf("候補") >= 0 ? "waiting" : "confirmed";
+        const target = document.querySelector(`details.roster[data-section="${section}"]`);
+        if (target) target.open = true;
+        await loadRosterSection(section, { force: true });
+        toast(status ? `報名成功：${status}` : "報名成功");
+      } catch (err) {
+        toast(err.message || "報名失敗");
+      } finally {
+        button.disabled = false;
+        button.textContent = "✅ 我要報名";
+      }
+    }
     function openPicker() { document.getElementById("eventSheet").classList.add("show"); renderOptions(); }
     function closePicker() { document.getElementById("eventSheet").classList.remove("show"); }
     document.getElementById("openPicker").addEventListener("click", openPicker);
@@ -549,6 +609,7 @@
     document.getElementById("refreshBtn").addEventListener("click", () => loadInit({ force: true }));
     document.getElementById("quickRefresh").addEventListener("click", () => loadInit({ force: true }));
     document.getElementById("loadRoster").addEventListener("click", loadRoster);
+    document.getElementById("submitSignup").addEventListener("click", submitSignup);
     document.querySelectorAll("details.roster").forEach((detail) => {
       detail.addEventListener("toggle", () => {
         const section = detail.dataset.section;
