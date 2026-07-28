@@ -7,10 +7,10 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-title" content="羽球報名 Alpha">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <title>羽球報名 v5.0.0-alpha.9</title>
+  <title>羽球報名 v5.0.0-alpha.10</title>
   <link rel="manifest" href="./manifest.webmanifest">
-  <link rel="apple-touch-icon" sizes="180x180" href="../icon-180.png?v=5-alpha-9">
-  <link rel="icon" type="image/png" sizes="192x192" href="../icon-192.png?v=5-alpha-9">
+  <link rel="apple-touch-icon" sizes="180x180" href="../icon-180.png?v=5-alpha-10">
+  <link rel="icon" type="image/png" sizes="192x192" href="../icon-192.png?v=5-alpha-10">
   <style>
     :root {
       --ink: #0f172a;
@@ -86,14 +86,18 @@
       font-weight: 1000;
     }
     .icon-button { width: 58px; height: 58px; font-size: 25px; }
-    .button-row { display: grid; grid-template-columns: minmax(0, 1fr) 58px; gap: 10px; }
+    .button-row { display: grid; grid-template-columns: minmax(0, 1fr) 72px; align-items: stretch; gap: 10px; }
+    .button-row .icon-button { width: 72px; height: 72px; border-radius: 22px; font-size: 28px; }
+    .roster-title-row { display: grid; grid-template-columns: minmax(0, 1fr) 116px; align-items: center; gap: 12px; }
+    .roster-title-row h2 { white-space: nowrap; }
     .roster-refresh {
       width: 100%;
       min-height: 58px;
       border-radius: 18px;
       background: linear-gradient(180deg, #35a7ff, #1677e8);
       color: white;
-      font-size: 21px;
+      font-size: 20px;
+      white-space: nowrap;
       box-shadow: 0 14px 28px rgba(10,132,255,.2);
     }
     .primary {
@@ -417,9 +421,9 @@
 <body>
   <div class="app">
     <header class="hero">
-      <img src="../icon-180.png?v=5-alpha-9" alt="羽球報名">
+      <img src="../icon-180.png?v=5-alpha-10" alt="羽球報名">
       <h1>羽球報名系統</h1>
-      <div class="version">v5 alpha.9</div>
+      <div class="version">v5 alpha.10</div>
     </header>
 
     <section class="panel">
@@ -467,9 +471,9 @@
 
     <section class="panel">
       <p class="kicker">READ ONLY</p>
-      <div class="title-row">
+      <div class="title-row roster-title-row">
         <h2>名單預覽</h2>
-        <button class="small-button roster-refresh" id="loadRoster" type="button">🔄 重新整理已開啟名單</button>
+        <button class="small-button roster-refresh" id="loadRoster" type="button">🔄 重整</button>
       </div>
       <div class="section-list">
         <details class="roster" data-section="confirmed" open>
@@ -520,7 +524,7 @@
     const state = { events: [], selectedEventId: "", selectedEvent: null, rosterLoaded: false, sections: {}, loadingSections: {}, preloadingRoster: false };
 
     function cacheKey(api, params) {
-      return "v5-alpha.9:" + api + ":" + JSON.stringify(params || {});
+      return "v5-alpha.10:" + api + ":" + JSON.stringify(params || {});
     }
 
     function readCache(api, params) {
@@ -879,7 +883,7 @@
           const name = escapeHtml(text(p.name, "未命名"));
           const canCancel = text(p.type) === "temp";
           return `<div class="player">
-            <div class="player-main"><span class="order">${Number(p.orderNo) || index + 1}</span><span class="player-name">${name}</span></div>
+            <div class="player-main"><span class="order">${index + 1}</span><span class="player-name">${name}</span></div>
             ${canCancel ? `<button class="cancel-temp" type="button" data-signup-id="${signupId}" data-name="${name}">取消</button>` : ""}
           </div>`;
         }).join("")
@@ -943,7 +947,7 @@
       document.getElementById("eventName").textContent = "正在讀取聚會資料...";
       document.getElementById("statusText").textContent = "正在更新聚會與名單，請稍候";
       ["confirmedCount","remainCount","waitingCount"].forEach((id) => document.getElementById(id).textContent = "...");
-      showMarquee("正在讀取聚會資料，請稍候...");
+      showActionModal("", "讀取中", "正在讀取聚會資料，請稍候。");
       setBusy(true);
       try {
         const data = await apiFetch("v5EventBasic", { eventId }, { force: true });
@@ -951,13 +955,14 @@
         mergeSelectedEventSummary(data.payload);
         renderEvent(data.payload);
         updateSyncTime(data);
+        closeActionModal();
         toast("已切換聚會");
         preloadRosterForSelectedEvent();
       } catch (err) {
+        showActionModal("error", "讀取失敗", err.message || "請稍後再試。");
         toast(err.message || "切換失敗");
       } finally {
         setBusy(false);
-        hideMarquee();
       }
     }
     async function loadRoster() {
