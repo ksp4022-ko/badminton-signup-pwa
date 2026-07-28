@@ -1,0 +1,464 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#dff1ff">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="羽球報名 Alpha">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <title>羽球報名 v5.0.0-alpha.1</title>
+  <link rel="manifest" href="./manifest.webmanifest">
+  <link rel="apple-touch-icon" sizes="180x180" href="../icon-180.png?v=5-alpha-1">
+  <link rel="icon" type="image/png" sizes="192x192" href="../icon-192.png?v=5-alpha-1">
+  <style>
+    :root {
+      --ink: #0f172a;
+      --muted: #64748b;
+      --blue: #248bf2;
+      --green: #23c764;
+      --red: #e11d48;
+      --orange: #f59e0b;
+      --card: rgba(255,255,255,.84);
+      --line: rgba(148,163,184,.22);
+      --shadow: 0 20px 54px rgba(15,23,42,.13);
+      --radius: 28px;
+    }
+    * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+    html, body { margin: 0; min-height: 100%; color: var(--ink); font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans TC", "PingFang TC", "Microsoft JhengHei", sans-serif; }
+    body {
+      background:
+        radial-gradient(circle at 18% 0%, rgba(79,155,255,.28), transparent 28rem),
+        radial-gradient(circle at 88% 22%, rgba(35,199,100,.16), transparent 24rem),
+        #eaf6ff;
+      overflow-x: hidden;
+    }
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      z-index: -1;
+      opacity: .34;
+      background-image:
+        linear-gradient(30deg, transparent 0 38px, rgba(54,124,180,.2) 39px 41px, transparent 42px 86px),
+        radial-gradient(circle at 22px 22px, rgba(54,124,180,.22) 0 2px, transparent 3px);
+      background-size: 110px 110px;
+    }
+    .app {
+      width: min(100%, 560px);
+      margin: 0 auto;
+      padding: calc(14px + env(safe-area-inset-top)) 10px calc(28px + env(safe-area-inset-bottom));
+    }
+    .hero {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      min-height: 92px;
+      padding: 16px;
+      border-radius: 26px;
+      color: white;
+      background: linear-gradient(135deg, #65b6ff, #2d80f6);
+      box-shadow: 0 18px 42px rgba(37,99,235,.26);
+      animation: rise .42s ease-out both;
+    }
+    .hero img { width: 56px; height: 56px; border-radius: 17px; background: white; }
+    .hero h1 { margin: 0; font-size: clamp(28px, 7vw, 38px); line-height: 1; font-weight: 1000; letter-spacing: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .hero .version { flex: 0 0 auto; padding: 7px 10px; border-radius: 999px; background: rgba(255,255,255,.2); font-size: 13px; font-weight: 1000; }
+    .panel {
+      margin-top: 12px;
+      padding: 18px;
+      border: 1px solid rgba(255,255,255,.6);
+      border-radius: var(--radius);
+      background: var(--card);
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(18px);
+      animation: rise .48s ease-out both;
+    }
+    .kicker { margin: 0 0 2px; color: #8a97a8; font-size: 13px; font-weight: 1000; letter-spacing: .38em; }
+    .title-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 14px; }
+    h2 { margin: 0; font-size: clamp(32px, 8vw, 42px); line-height: 1.04; font-weight: 1000; letter-spacing: 0; }
+    .icon-button, .small-button {
+      border: 0;
+      border-radius: 18px;
+      background: rgba(255,255,255,.88);
+      box-shadow: 0 12px 28px rgba(15,23,42,.1);
+      color: var(--blue);
+      font-weight: 1000;
+    }
+    .icon-button { width: 58px; height: 58px; font-size: 25px; }
+    .button-row { display: grid; grid-template-columns: minmax(0, 1fr) 58px; gap: 10px; }
+    .primary {
+      min-height: 72px;
+      border: 0;
+      border-radius: 22px;
+      background: linear-gradient(180deg, #32d873, #18be56);
+      color: white;
+      font-size: clamp(25px, 6vw, 33px);
+      font-weight: 1000;
+      box-shadow: 0 18px 36px rgba(24,190,86,.26);
+    }
+    button { cursor: pointer; transition: transform .14s ease, filter .14s ease; }
+    button:active { transform: scale(.985); filter: brightness(.98); }
+    .event-card {
+      margin-top: 14px;
+      padding: 20px;
+      border-radius: 26px;
+      background: rgba(255,255,255,.72);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.7);
+    }
+    .event-name { font-size: clamp(32px, 8vw, 46px); line-height: 1.08; font-weight: 1000; letter-spacing: 0; }
+    .info-list { display: grid; gap: 10px; margin-top: 16px; }
+    .info-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      min-height: 54px;
+      padding: 10px 14px;
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      background: #f7f9fc;
+      font-size: 20px;
+      font-weight: 950;
+      color: #475569;
+    }
+    .info-row strong { color: #2563c7; font-size: 23px; }
+    .fee-row { background: linear-gradient(135deg, #fff7ed, #ffedd5); color: #9a3412; }
+    .fee-row strong { color: #9a3412; font-size: 28px; }
+    .note-row { background: linear-gradient(135deg, #fff7ed, #ffedd5); color: #9a3412; }
+    .stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 12px; }
+    .stat {
+      min-height: 82px;
+      padding: 10px 8px;
+      border-radius: 18px;
+      background: rgba(255,255,255,.86);
+      box-shadow: 0 10px 24px rgba(15,23,42,.08);
+      text-align: center;
+    }
+    .stat .num { display: block; font-size: 36px; line-height: .95; font-weight: 1000; }
+    .stat .label { display: block; margin-top: 6px; font-size: 16px; font-weight: 1000; color: #334155; }
+    .stat.confirmed .num { color: #2563eb; }
+    .stat.remain .num { color: var(--red); }
+    .stat.wait .num { color: #d97706; }
+    .status-strip { margin-top: 10px; padding: 12px 14px; border-radius: 17px; background: rgba(255,255,255,.9); color: #17437a; font-size: 19px; line-height: 1.35; font-weight: 950; }
+    .section-list { display: grid; gap: 10px; }
+    details.roster {
+      border-radius: 22px;
+      background: rgba(255,255,255,.78);
+      box-shadow: 0 10px 24px rgba(15,23,42,.08);
+      overflow: hidden;
+    }
+    details.roster summary {
+      list-style: none;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      min-height: 68px;
+      padding: 14px 16px;
+      font-size: 24px;
+      font-weight: 1000;
+    }
+    details.roster summary::-webkit-details-marker { display: none; }
+    .count-pill { min-width: 52px; padding: 6px 12px; border-radius: 999px; background: #e8f2ff; color: #1479d8; text-align: center; }
+    .players { display: grid; gap: 8px; padding: 0 12px 14px; }
+    .player { display: flex; align-items: center; gap: 10px; min-height: 58px; padding: 10px 12px; border-radius: 16px; background: white; font-size: 22px; font-weight: 950; }
+    .order { width: 36px; height: 36px; display: grid; place-items: center; border-radius: 12px; background: #e8f2ff; color: #1479d8; font-weight: 1000; }
+    .sheet {
+      position: fixed;
+      inset: 0;
+      z-index: 20;
+      display: none;
+      background: rgba(15,23,42,.28);
+      backdrop-filter: blur(7px);
+    }
+    .sheet.show { display: block; }
+    .sheet-card {
+      position: absolute;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      width: min(100%, 560px);
+      max-height: 76dvh;
+      margin: 0 auto;
+      padding: 12px 14px calc(18px + env(safe-area-inset-bottom));
+      border-radius: 28px 28px 0 0;
+      background: rgba(248,251,255,.96);
+      box-shadow: 0 -24px 60px rgba(15,23,42,.2);
+      overflow: auto;
+    }
+    .sheet-head { position: sticky; top: 0; display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 4px 0 12px; background: rgba(248,251,255,.96); }
+    .sheet-head h3 { margin: 0; font-size: 30px; line-height: 1.1; font-weight: 1000; }
+    .event-option {
+      width: 100%;
+      min-height: 112px;
+      margin-bottom: 10px;
+      padding: 16px;
+      border: 2px solid rgba(148,163,184,.26);
+      border-radius: 22px;
+      background: white;
+      text-align: left;
+    }
+    .event-option.active { border-color: #2563eb; background: #eff6ff; }
+    .event-option-main { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; }
+    .event-option-name { min-width: 0; font-size: 32px; line-height: 1.08; font-weight: 1000; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .event-option-meta { margin-top: 8px; color: #334155; font-size: 18px; line-height: 1.2; font-weight: 950; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .pill { flex: 0 0 auto; padding: 7px 10px; border-radius: 999px; font-size: 14px; line-height: 1; font-weight: 1000; white-space: nowrap; }
+    .pill.need { background: #fee2e2; color: #b91c1c; }
+    .pill.full { background: #dbeafe; color: #1d4ed8; }
+    .pill.wait { background: #ffedd5; color: #c2410c; }
+    .toast { position: fixed; left: 12px; right: 12px; bottom: calc(14px + env(safe-area-inset-bottom)); z-index: 30; display: none; max-width: 520px; margin: 0 auto; padding: 13px 15px; border-radius: 17px; background: rgba(255,255,255,.94); box-shadow: 0 18px 46px rgba(15,23,42,.18); font-size: 17px; font-weight: 900; color: #334155; }
+    .toast.show { display: block; }
+    .skeleton { position: relative; overflow: hidden; color: transparent !important; background: #eaf1f8 !important; }
+    .skeleton::after { content: ""; position: absolute; inset: 0; transform: translateX(-100%); background: linear-gradient(90deg, transparent, rgba(255,255,255,.7), transparent); animation: shimmer 1.2s infinite; }
+    @keyframes shimmer { to { transform: translateX(100%); } }
+    @keyframes rise { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+    @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; } }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <header class="hero">
+      <img src="../icon-180.png?v=5-alpha-1" alt="羽球報名">
+      <h1>羽球報名系統</h1>
+      <div class="version">v5 alpha</div>
+    </header>
+
+    <section class="panel">
+      <p class="kicker">CURRENT EVENT</p>
+      <div class="title-row">
+        <h2>目前聚會資訊</h2>
+        <button class="icon-button" id="refreshBtn" type="button" aria-label="重新整理">↻</button>
+      </div>
+      <div class="button-row">
+        <button class="primary" id="openPicker" type="button">選擇聚會</button>
+        <button class="icon-button" id="quickRefresh" type="button" aria-label="重新整理">🔄</button>
+      </div>
+      <article class="event-card">
+        <div class="event-name" id="eventName">正在讀取聚會</div>
+        <div class="info-list">
+          <div class="info-row"><span>日期</span><strong id="eventDate">讀取中</strong></div>
+          <div class="info-row"><span>上限</span><strong id="eventMax">-- 人</strong></div>
+          <div class="info-row"><span>用球</span><strong id="eventBall">--</strong></div>
+          <div class="info-row fee-row"><span>💰 零打費用</span><strong id="eventFee">-- 元</strong></div>
+          <div class="info-row note-row" id="eventNoteRow" hidden><span>提醒</span><strong id="eventNote"></strong></div>
+        </div>
+      </article>
+      <div class="stats">
+        <div class="stat confirmed"><span class="num" id="confirmedCount">0</span><span class="label">已報</span></div>
+        <div class="stat remain"><span class="num" id="remainCount">0</span><span class="label">尚缺</span></div>
+        <div class="stat wait"><span class="num" id="waitingCount">0</span><span class="label">候補</span></div>
+      </div>
+      <div class="status-strip" id="statusText">Alpha 讀取版：目前不寫入資料。</div>
+    </section>
+
+    <section class="panel">
+      <p class="kicker">READ ONLY</p>
+      <div class="title-row">
+        <h2>名單預覽</h2>
+        <button class="small-button" id="loadRoster" type="button">讀取</button>
+      </div>
+      <div class="section-list">
+        <details class="roster" open>
+          <summary>正式名單 <span class="count-pill" id="confirmedRosterCount">0</span></summary>
+          <div class="players" id="confirmedList"></div>
+        </details>
+        <details class="roster">
+          <summary>候補名單 <span class="count-pill" id="waitingRosterCount">0</span></summary>
+          <div class="players" id="waitingList"></div>
+        </details>
+        <details class="roster">
+          <summary>請假名單 <span class="count-pill" id="leaveRosterCount">0</span></summary>
+          <div class="players" id="leaveList"></div>
+        </details>
+      </div>
+    </section>
+  </div>
+
+  <div class="sheet" id="eventSheet" aria-hidden="true">
+    <div class="sheet-card">
+      <div class="sheet-head">
+        <h3>選擇聚會</h3>
+        <button class="icon-button" id="closePicker" type="button" aria-label="關閉">×</button>
+      </div>
+      <div id="eventOptions"></div>
+    </div>
+  </div>
+  <div class="toast" id="toast"></div>
+
+  <script>
+    const API_BASE = "https://script.google.com/macros/s/AKfycbw1yQZtGYP1YTAMvvrEZPiP8m6_gCb_-lnCKeKHRGOJ1zuFGK0GHxHouJyoqeci-TLnqQ/exec";
+    const SITE = "kangxuan";
+    const state = { events: [], selectedEventId: "", selectedEvent: null, rosterLoaded: false };
+
+    function jsonp(api, params = {}) {
+      return new Promise((resolve, reject) => {
+        const cb = "__v5AlphaCb" + Date.now() + Math.floor(Math.random() * 10000);
+        const url = new URL(API_BASE);
+        url.searchParams.set("site", SITE);
+        url.searchParams.set("api", api);
+        url.searchParams.set("callback", cb);
+        Object.keys(params).forEach((key) => url.searchParams.set(key, params[key]));
+        const script = document.createElement("script");
+        const timer = window.setTimeout(() => cleanup(new Error("讀取逾時")), 12000);
+        function cleanup(err, data) {
+          window.clearTimeout(timer);
+          delete window[cb];
+          script.remove();
+          err ? reject(err) : resolve(data);
+        }
+        window[cb] = (data) => cleanup(null, data);
+        script.onerror = () => cleanup(new Error("讀取失敗"));
+        script.src = url.toString();
+        document.head.appendChild(script);
+      });
+    }
+
+    function text(value, fallback = "") { return value == null || value === "" ? fallback : String(value); }
+    function parseDate(value) {
+      if (!value) return null;
+      const d = new Date(value);
+      return Number.isNaN(d.getTime()) ? null : d;
+    }
+    function formatDate(value) {
+      const d = parseDate(value);
+      if (!d) return text(value, "未設定");
+      const y = d.getFullYear();
+      const m = String(d.getMonth() + 1).padStart(2, "0");
+      const day = String(d.getDate()).padStart(2, "0");
+      return `${y}/${m}/${day}`;
+    }
+    function weekday(value) {
+      const d = parseDate(value);
+      return d ? ["週日","週一","週二","週三","週四","週五","週六"][d.getDay()] : "";
+    }
+    function optionTitle(event) { return text(event.eventName, "未命名聚會"); }
+    function meta(event) {
+      const group = text(event.groupName, "");
+      return [formatDate(event.eventDate), weekday(event.eventDate), group].filter(Boolean).join("｜");
+    }
+    function pill(event) {
+      const remain = Number(event.remainCount) || 0;
+      const waiting = Number(event.waitingCount) || 0;
+      if (remain > 0) return `<span class="pill need">尚缺 ${remain}人</span>`;
+      if (waiting > 0) return `<span class="pill wait">候補 ${waiting}人</span>`;
+      return `<span class="pill full">額滿｜可候補</span>`;
+    }
+    function toast(message) {
+      const el = document.getElementById("toast");
+      el.textContent = message;
+      el.classList.add("show");
+      window.clearTimeout(toast._timer);
+      toast._timer = window.setTimeout(() => el.classList.remove("show"), 2600);
+    }
+    function setBusy(isBusy) {
+      document.getElementById("eventName").classList.toggle("skeleton", isBusy);
+    }
+    function renderEvent(detail) {
+      const event = detail && detail.event ? detail.event : {};
+      state.selectedEvent = detail;
+      document.getElementById("eventName").textContent = optionTitle(event);
+      document.getElementById("eventDate").textContent = [formatDate(event.eventDate), weekday(event.eventDate)].filter(Boolean).join("｜");
+      document.getElementById("eventMax").textContent = `${Number(event.maxPeople) || 0} 人`;
+      document.getElementById("eventBall").textContent = text(event.ballType, "MS-101");
+      document.getElementById("eventFee").textContent = `${Number(event.tempFee) || 0} 元`;
+      document.getElementById("confirmedCount").textContent = Number(detail.confirmedCount) || 0;
+      document.getElementById("remainCount").textContent = Number(detail.remainCount) || 0;
+      document.getElementById("waitingCount").textContent = Number(detail.waitingCount) || 0;
+      const note = text(event.eventNote, "");
+      document.getElementById("eventNoteRow").hidden = !note;
+      document.getElementById("eventNote").textContent = note;
+      document.getElementById("statusText").textContent = detail.partial
+        ? "Alpha 讀取版：摘要已同步正式資料，名單可手動讀取。"
+        : "Alpha 讀取版：名單已同步正式資料。";
+      renderRoster(detail);
+      renderOptions();
+    }
+    function renderOptions() {
+      const wrap = document.getElementById("eventOptions");
+      wrap.innerHTML = state.events.map((event) => {
+        const active = event.eventId === state.selectedEventId ? " active" : "";
+        return `<button class="event-option${active}" type="button" data-event-id="${event.eventId}">
+          <div class="event-option-main">
+            <div class="event-option-name">${optionTitle(event)}</div>
+            ${pill(event)}
+          </div>
+          <div class="event-option-meta">${meta(event)}</div>
+        </button>`;
+      }).join("");
+      wrap.querySelectorAll(".event-option").forEach((btn) => {
+        btn.addEventListener("click", () => selectEvent(btn.dataset.eventId));
+      });
+    }
+    function renderRoster(detail) {
+      const lists = [
+        ["confirmed", "confirmedList", "confirmedRosterCount"],
+        ["waiting", "waitingList", "waitingRosterCount"],
+        ["leave", "leaveList", "leaveRosterCount"]
+      ];
+      lists.forEach(([key, listId, countId]) => {
+        const players = detail && detail[key] ? detail[key] : [];
+        document.getElementById(countId).textContent = players.length || Number(detail && detail[key + "Count"]) || 0;
+        document.getElementById(listId).innerHTML = players.length
+          ? players.map((p, index) => `<div class="player"><span class="order">${Number(p.orderNo) || index + 1}</span><span>${text(p.name, "未命名")}</span></div>`).join("")
+          : `<div class="player"><span class="order">-</span><span>尚未讀取或目前無資料</span></div>`;
+      });
+    }
+    async function loadInit() {
+      setBusy(true);
+      try {
+        const data = await jsonp("v5Init");
+        if (!data.ok) throw new Error(data.error || "後端回傳錯誤");
+        state.events = data.payload.events || [];
+        state.selectedEventId = data.payload.selectedEventId || (state.events[0] && state.events[0].eventId) || "";
+        renderEvent(data.payload.selectedEvent);
+        toast("已讀取正式資料");
+      } catch (err) {
+        document.getElementById("eventName").textContent = "讀取失敗";
+        document.getElementById("statusText").textContent = err.message || String(err);
+        toast("讀取失敗，請稍後再試");
+      } finally {
+        setBusy(false);
+      }
+    }
+    async function selectEvent(eventId) {
+      if (!eventId) return;
+      state.selectedEventId = eventId;
+      closePicker();
+      setBusy(true);
+      try {
+        const data = await jsonp("v5EventBasic", { eventId });
+        if (!data.ok) throw new Error(data.error || "後端回傳錯誤");
+        renderEvent(data.payload);
+        toast("已切換聚會");
+      } catch (err) {
+        toast(err.message || "切換失敗");
+      } finally {
+        setBusy(false);
+      }
+    }
+    async function loadRoster() {
+      if (!state.selectedEventId) return toast("請先選擇聚會");
+      setBusy(true);
+      try {
+        const data = await jsonp("v5EventRoster", { eventId: state.selectedEventId });
+        if (!data.ok) throw new Error(data.error || "後端回傳錯誤");
+        renderEvent(data.payload);
+        toast("名單已更新");
+      } catch (err) {
+        toast(err.message || "名單讀取失敗");
+      } finally {
+        setBusy(false);
+      }
+    }
+    function openPicker() { document.getElementById("eventSheet").classList.add("show"); renderOptions(); }
+    function closePicker() { document.getElementById("eventSheet").classList.remove("show"); }
+    document.getElementById("openPicker").addEventListener("click", openPicker);
+    document.getElementById("closePicker").addEventListener("click", closePicker);
+    document.getElementById("eventSheet").addEventListener("click", (e) => { if (e.target.id === "eventSheet") closePicker(); });
+    document.getElementById("refreshBtn").addEventListener("click", loadInit);
+    document.getElementById("quickRefresh").addEventListener("click", loadInit);
+    document.getElementById("loadRoster").addEventListener("click", loadRoster);
+    loadInit();
+  </script>
+</body>
+</html>
