@@ -1,4 +1,4 @@
-const CACHE_NAME = "badminton-signup-pwa-v4.3.12";
+const CACHE_NAME = "badminton-signup-pwa-v4.3.13";
 const LOCAL_ASSETS = [
   "./",
   "./index.html",
