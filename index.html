@@ -1,17 +1,18 @@
-﻿<!doctype html>
+<!doctype html>
 <html lang="zh-Hant">
 <head>
+  <!-- v4.3.12｜GitHub Pages PWA 入口與 iframe 穩定模式 -->
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="theme-color" content="#4f9bff">
   <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-title" content="羽球報名 v4.3.11">
+  <meta name="apple-mobile-web-app-title" content="羽球報名 v4.3.12">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <title>羽球報名系統 v4.3.11</title>
+  <title>羽球報名系統 v4.3.12</title>
   <link rel="manifest" href="./manifest.webmanifest">
-  <link rel="apple-touch-icon" sizes="180x180" href="./icon-180.png?v=4.3.11">
-  <link rel="apple-touch-icon" sizes="192x192" href="./icon-192.png?v=4.3.11">
-  <link rel="icon" type="image/png" sizes="192x192" href="./icon-192.png?v=4.3.11">
+  <link rel="apple-touch-icon" sizes="180x180" href="./icon-180.png?v=4.3.12">
+  <link rel="apple-touch-icon" sizes="192x192" href="./icon-192.png?v=4.3.12">
+  <link rel="icon" type="image/png" sizes="192x192" href="./icon-192.png?v=4.3.12">
   <style>
     * {
       box-sizing: border-box;
@@ -71,8 +72,9 @@
 <body>
   <main class="app-shell">
     <iframe
+      id="appFrame"
       title="羽球報名系統"
-      src="https://script.google.com/macros/s/AKfycbw1yQZtGYP1YTAMvvrEZPiP8m6_gCb_-lnCKeKHRGOJ1zuFGK0GHxHouJyoqeci-TLnqQ/exec?site=kangxuan"
+      src="https://script.google.com/macros/s/AKfycbw1yQZtGYP1YTAMvvrEZPiP8m6_gCb_-lnCKeKHRGOJ1zuFGK0GHxHouJyoqeci-TLnqQ/exec?site=kangxuan&pwa=1"
       allow="clipboard-write"
       referrerpolicy="no-referrer-when-downgrade"></iframe>
   </main>
@@ -80,6 +82,14 @@
     若畫面沒有載入，請<a href="https://script.google.com/macros/s/AKfycbw1yQZtGYP1YTAMvvrEZPiP8m6_gCb_-lnCKeKHRGOJ1zuFGK0GHxHouJyoqeci-TLnqQ/exec?site=kangxuan">開啟原報名系統</a>。
   </div>
   <script>
+    var appFrameLoaded = false;
+    var appFrame = document.getElementById("appFrame");
+    if (appFrame) {
+      appFrame.addEventListener("load", function () {
+        appFrameLoaded = true;
+      });
+    }
+
     if ("serviceWorker" in navigator) {
       window.addEventListener("load", function () {
         navigator.serviceWorker.register("./sw.js").catch(function () {});
@@ -88,8 +98,8 @@
 
     window.setTimeout(function () {
       var fallback = document.getElementById("fallback");
-      if (fallback) fallback.style.display = "block";
-    }, 8000);
+      if (fallback && !appFrameLoaded) fallback.style.display = "block";
+    }, 12000);
   </script>
 </body>
 </html>
