@@ -7,10 +7,10 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-title" content="羽球報名 Alpha">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <title>羽球報名 v5.0.0-alpha.3</title>
+  <title>羽球報名 v5.0.0-alpha.4</title>
   <link rel="manifest" href="./manifest.webmanifest">
-  <link rel="apple-touch-icon" sizes="180x180" href="../icon-180.png?v=5-alpha-3">
-  <link rel="icon" type="image/png" sizes="192x192" href="../icon-192.png?v=5-alpha-3">
+  <link rel="apple-touch-icon" sizes="180x180" href="../icon-180.png?v=5-alpha-4">
+  <link rel="icon" type="image/png" sizes="192x192" href="../icon-192.png?v=5-alpha-4">
   <style>
     :root {
       --ink: #0f172a;
@@ -169,8 +169,23 @@
     details.roster summary::-webkit-details-marker { display: none; }
     .count-pill { min-width: 52px; padding: 6px 12px; border-radius: 999px; background: #e8f2ff; color: #1479d8; text-align: center; }
     .players { display: grid; gap: 8px; padding: 0 12px 14px; }
-    .player { display: flex; align-items: center; gap: 10px; min-height: 58px; padding: 10px 12px; border-radius: 16px; background: white; font-size: 22px; font-weight: 950; }
+    .player { display: flex; align-items: center; justify-content: space-between; gap: 10px; min-height: 58px; padding: 10px 12px; border-radius: 16px; background: white; font-size: 22px; font-weight: 950; }
+    .player-main { display: flex; align-items: center; gap: 10px; min-width: 0; }
+    .player-name { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
     .order { width: 36px; height: 36px; display: grid; place-items: center; border-radius: 12px; background: #e8f2ff; color: #1479d8; font-weight: 1000; }
+    .cancel-temp {
+      flex: 0 0 auto;
+      min-height: 42px;
+      padding: 0 14px;
+      border: 0;
+      border-radius: 14px;
+      background: #fee2e2;
+      color: #b91c1c;
+      font-size: 16px;
+      font-weight: 1000;
+      box-shadow: 0 8px 18px rgba(185,28,28,.12);
+    }
+    .cancel-temp:disabled { opacity: .55; }
     .sheet {
       position: fixed;
       inset: 0;
@@ -227,9 +242,9 @@
 <body>
   <div class="app">
     <header class="hero">
-      <img src="../icon-180.png?v=5-alpha-3" alt="羽球報名">
+      <img src="../icon-180.png?v=5-alpha-4" alt="羽球報名">
       <h1>羽球報名系統</h1>
-      <div class="version">v5 alpha.3</div>
+      <div class="version">v5 alpha.4</div>
     </header>
 
     <section class="panel">
@@ -316,7 +331,7 @@
     const state = { events: [], selectedEventId: "", selectedEvent: null, rosterLoaded: false, sections: {} };
 
     function cacheKey(api, params) {
-      return "v5-alpha.3:" + api + ":" + JSON.stringify(params || {});
+      return "v5-alpha.4:" + api + ":" + JSON.stringify(params || {});
     }
 
     function readCache(api, params) {
@@ -383,6 +398,15 @@
     }
 
     function text(value, fallback = "") { return value == null || value === "" ? fallback : String(value); }
+    function escapeHtml(value) {
+      return text(value).replace(/[&<>"']/g, (ch) => ({
+        "&": "&amp;",
+        "<": "&lt;",
+        ">": "&gt;",
+        "\"": "&quot;",
+        "'": "&#39;"
+      }[ch]));
+    }
     function parseDate(value) {
       if (!value) return null;
       const d = new Date(value);
@@ -498,8 +522,16 @@
       const list = document.getElementById(idMap[section]);
       if (!list) return;
       list.innerHTML = players && players.length
-        ? players.map((p, index) => `<div class="player"><span class="order">${Number(p.orderNo) || index + 1}</span><span>${text(p.name, "未命名")}</span></div>`).join("")
-        : `<div class="player"><span class="order">-</span><span>目前無資料</span></div>`;
+        ? players.map((p, index) => {
+          const signupId = escapeHtml(p.signupId);
+          const name = escapeHtml(text(p.name, "未命名"));
+          const canCancel = text(p.type) === "temp";
+          return `<div class="player">
+            <div class="player-main"><span class="order">${Number(p.orderNo) || index + 1}</span><span class="player-name">${name}</span></div>
+            ${canCancel ? `<button class="cancel-temp" type="button" data-signup-id="${signupId}" data-name="${name}">取消</button>` : ""}
+          </div>`;
+        }).join("")
+        : `<div class="player"><div class="player-main"><span class="order">-</span><span class="player-name">目前無資料</span></div></div>`;
       state.sections[section] = true;
     }
     async function loadInit(options = {}) {
@@ -601,6 +633,31 @@
         button.textContent = "✅ 我要報名";
       }
     }
+    async function cancelTempSignup(signupId, name, button) {
+      if (!state.selectedEventId) return toast("請先選擇聚會");
+      if (!signupId) return toast("找不到報名資料");
+      const displayName = text(name, "此臨打");
+      if (!window.confirm(`確定要取消「${displayName}」的臨打報名嗎？\n取消後候補會自動重排。`)) return;
+      button.disabled = true;
+      button.textContent = "取消中";
+      try {
+        const data = await apiWrite("v5CancelTempSignup", { eventId: state.selectedEventId, signupId });
+        if (!data.ok) throw new Error(data.error || "取消失敗");
+        state.sections = {};
+        if (data.payload && data.payload.detail) renderEvent(data.payload.detail);
+        const confirmed = document.querySelector('details.roster[data-section="confirmed"]');
+        if (confirmed) confirmed.open = true;
+        await loadRosterSection("confirmed", { force: true });
+        const waiting = document.querySelector('details.roster[data-section="waiting"]');
+        if (waiting && waiting.open) await loadRosterSection("waiting", { force: true });
+        toast(data.payload && data.payload.message ? data.payload.message : "已取消報名");
+      } catch (err) {
+        toast(err.message || "取消失敗");
+      } finally {
+        button.disabled = false;
+        button.textContent = "取消";
+      }
+    }
     function openPicker() { document.getElementById("eventSheet").classList.add("show"); renderOptions(); }
     function closePicker() { document.getElementById("eventSheet").classList.remove("show"); }
     document.getElementById("openPicker").addEventListener("click", openPicker);
@@ -610,6 +667,10 @@
     document.getElementById("quickRefresh").addEventListener("click", () => loadInit({ force: true }));
     document.getElementById("loadRoster").addEventListener("click", loadRoster);
     document.getElementById("submitSignup").addEventListener("click", submitSignup);
+    document.addEventListener("click", (event) => {
+      const button = event.target.closest(".cancel-temp");
+      if (button) cancelTempSignup(button.dataset.signupId, button.dataset.name, button);
+    });
     document.querySelectorAll("details.roster").forEach((detail) => {
       detail.addEventListener("toggle", () => {
         const section = detail.dataset.section;
