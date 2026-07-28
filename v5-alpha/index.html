@@ -7,10 +7,10 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-title" content="羽球報名 Alpha">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <title>羽球報名 v5.0.0-alpha.10</title>
+  <title>羽球報名 v5.0.0-alpha.11</title>
   <link rel="manifest" href="./manifest.webmanifest">
-  <link rel="apple-touch-icon" sizes="180x180" href="../icon-180.png?v=5-alpha-10">
-  <link rel="icon" type="image/png" sizes="192x192" href="../icon-192.png?v=5-alpha-10">
+  <link rel="apple-touch-icon" sizes="180x180" href="../icon-180.png?v=5-alpha-11">
+  <link rel="icon" type="image/png" sizes="192x192" href="../icon-192.png?v=5-alpha-11">
   <style>
     :root {
       --ink: #0f172a;
@@ -221,19 +221,35 @@
       font-weight: 950;
     }
     .section-hint.warn { background: #fff7ed; color: #9a3412; }
-    .cancel-temp {
+    .cancel-temp,
+    .season-leave,
+    .season-return {
       flex: 0 0 auto;
       min-height: 42px;
       padding: 0 14px;
       border: 0;
       border-radius: 14px;
-      background: #fee2e2;
-      color: #b91c1c;
       font-size: 16px;
       font-weight: 1000;
+    }
+    .cancel-temp {
+      background: #fee2e2;
+      color: #b91c1c;
       box-shadow: 0 8px 18px rgba(185,28,28,.12);
     }
-    .cancel-temp:disabled { opacity: .55; }
+    .season-leave {
+      background: linear-gradient(180deg, #36d66f, #12b95a);
+      color: white;
+      box-shadow: 0 8px 18px rgba(34,197,94,.14);
+    }
+    .season-return {
+      background: #e8f2ff;
+      color: #1479d8;
+      box-shadow: 0 8px 18px rgba(20,121,216,.12);
+    }
+    .cancel-temp:disabled,
+    .season-leave:disabled,
+    .season-return:disabled { opacity: .55; }
     .sheet {
       position: fixed;
       inset: 0;
@@ -421,9 +437,9 @@
 <body>
   <div class="app">
     <header class="hero">
-      <img src="../icon-180.png?v=5-alpha-10" alt="羽球報名">
+      <img src="../icon-180.png?v=5-alpha-11" alt="羽球報名">
       <h1>羽球報名系統</h1>
-      <div class="version">v5 alpha.10</div>
+      <div class="version">v5 alpha.11</div>
     </header>
 
     <section class="panel">
@@ -524,7 +540,7 @@
     const state = { events: [], selectedEventId: "", selectedEvent: null, rosterLoaded: false, sections: {}, loadingSections: {}, preloadingRoster: false };
 
     function cacheKey(api, params) {
-      return "v5-alpha.10:" + api + ":" + JSON.stringify(params || {});
+      return "v5-alpha.11:" + api + ":" + JSON.stringify(params || {});
     }
 
     function readCache(api, params) {
@@ -557,6 +573,11 @@
       } catch (err) {
         return null;
       }
+    }
+    function clearSectionCaches() {
+      ["confirmed", "waiting", "leave"].forEach((section) => {
+        try { sessionStorage.removeItem(sectionCacheKey(section)); } catch (err) {}
+      });
     }
     function writeSectionCache(section, html, counts) {
       try {
@@ -825,6 +846,7 @@
     async function syncAfterMutationWithoutRoster(message) {
       showMarquee(message || "正在更新聚會人數，請稍候...");
       try {
+        clearSectionCaches();
         await refreshCurrentEvent({ force: true });
         collapseRosterSections();
       } finally {
@@ -882,9 +904,13 @@
           const signupId = escapeHtml(p.signupId);
           const name = escapeHtml(text(p.name, "未命名"));
           const canCancel = text(p.type) === "temp";
+          const canFixedLeave = section === "confirmed" && text(p.type) === "fixed";
+          const canFixedReturn = section === "leave" && text(p.type) === "fixed";
           return `<div class="player">
             <div class="player-main"><span class="order">${index + 1}</span><span class="player-name">${name}</span></div>
             ${canCancel ? `<button class="cancel-temp" type="button" data-signup-id="${signupId}" data-name="${name}">取消</button>` : ""}
+            ${canFixedLeave ? `<button class="season-leave" type="button" data-signup-id="${signupId}" data-name="${name}">季打請假</button>` : ""}
+            ${canFixedReturn ? `<button class="season-return" type="button" data-signup-id="${signupId}" data-name="${name}">恢復</button>` : ""}
           </div>`;
         }).join("")
         : `<div class="player"><div class="player-main"><span class="order">-</span><span class="player-name">目前無資料</span></div></div>`;
@@ -1070,6 +1096,48 @@
         button.textContent = "取消";
       }
     }
+    async function fixedLeave(signupId, name, button) {
+      if (!state.selectedEventId) return toast("請先選擇聚會");
+      if (!signupId) return toast("找不到固定成員資料");
+      const displayName = text(name, "此季打成員");
+      if (!window.confirm(`確定要讓「${displayName}」季打請假嗎？\n請假後會釋出名額，候補會依順位補上。`)) return;
+      button.disabled = true;
+      button.textContent = "請假中";
+      showActionModal("", "請假中", "正在寫入季打請假，請不要重複操作。");
+      collapseRosterSections();
+      try {
+        const data = await apiWrite("v5FixedLeave", { eventId: state.selectedEventId, signupId });
+        if (!data.ok) throw new Error(data.error || "請假失敗");
+        await syncAfterMutationWithoutRoster("請假完成，正在更新聚會人數...");
+        showActionModal("done", "請假成功", data.payload && data.payload.message ? `${data.payload.message}。名單已收合，點開名單時會重新讀取。` : "已完成季打請假。名單已收合，點開名單時會重新讀取。");
+      } catch (err) {
+        showActionModal("error", "請假失敗", err.message || "請假失敗，請稍後再試。");
+      } finally {
+        button.disabled = false;
+        button.textContent = "季打請假";
+      }
+    }
+    async function fixedReturn(signupId, name, button) {
+      if (!state.selectedEventId) return toast("請先選擇聚會");
+      if (!signupId) return toast("找不到固定成員資料");
+      const displayName = text(name, "此季打成員");
+      if (!window.confirm(`確定要讓「${displayName}」恢復出席嗎？\n30 分鐘緩衝內會回原順位；超過時間會重新排隊。`)) return;
+      button.disabled = true;
+      button.textContent = "恢復中";
+      showActionModal("", "恢復中", "正在恢復季打出席，請不要重複操作。");
+      collapseRosterSections();
+      try {
+        const data = await apiWrite("v5FixedReturn", { eventId: state.selectedEventId, signupId });
+        if (!data.ok) throw new Error(data.error || "恢復失敗");
+        await syncAfterMutationWithoutRoster("恢復完成，正在更新聚會人數...");
+        showActionModal("done", "恢復成功", data.payload && data.payload.message ? `${data.payload.message}。名單已收合，點開名單時會重新讀取。` : "已恢復出席。名單已收合，點開名單時會重新讀取。");
+      } catch (err) {
+        showActionModal("error", "恢復失敗", err.message || "恢復失敗，請稍後再試。");
+      } finally {
+        button.disabled = false;
+        button.textContent = "恢復";
+      }
+    }
     function openPicker() { document.getElementById("eventSheet").classList.add("show"); renderOptions(); }
     function closePicker() { document.getElementById("eventSheet").classList.remove("show"); }
     document.getElementById("openPicker").addEventListener("click", openPicker);
@@ -1099,6 +1167,10 @@
     document.addEventListener("click", (event) => {
       const button = event.target.closest(".cancel-temp");
       if (button) cancelTempSignup(button.dataset.signupId, button.dataset.name, button);
+      const seasonLeaveButton = event.target.closest(".season-leave");
+      if (seasonLeaveButton) fixedLeave(seasonLeaveButton.dataset.signupId, seasonLeaveButton.dataset.name, seasonLeaveButton);
+      const seasonReturnButton = event.target.closest(".season-return");
+      if (seasonReturnButton) fixedReturn(seasonReturnButton.dataset.signupId, seasonReturnButton.dataset.name, seasonReturnButton);
     });
     document.querySelectorAll("details.roster").forEach((detail) => {
       detail.addEventListener("toggle", () => {
