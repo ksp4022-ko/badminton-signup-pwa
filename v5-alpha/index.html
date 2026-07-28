@@ -7,10 +7,10 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-title" content="羽球報名 Alpha">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <title>羽球報名 v5.0.0-alpha.12</title>
+  <title>羽球報名 v5.0.0-alpha.13</title>
   <link rel="manifest" href="./manifest.webmanifest">
-  <link rel="apple-touch-icon" sizes="180x180" href="../icon-180.png?v=5-alpha-12">
-  <link rel="icon" type="image/png" sizes="192x192" href="../icon-192.png?v=5-alpha-12">
+  <link rel="apple-touch-icon" sizes="180x180" href="../icon-180.png?v=5-alpha-13">
+  <link rel="icon" type="image/png" sizes="192x192" href="../icon-192.png?v=5-alpha-13">
   <style>
     :root {
       --ink: #0f172a;
@@ -23,6 +23,16 @@
       --line: rgba(148,163,184,.22);
       --shadow: 0 20px 54px rgba(15,23,42,.13);
       --radius: 28px;
+      --btn-primary-bg: linear-gradient(180deg, #36d66f, #12b95a);
+      --btn-primary-text: #ffffff;
+      --btn-warning-bg: linear-gradient(180deg, #ffd89a, #f59e0b);
+      --btn-warning-text: #7c2d12;
+      --btn-info-bg: linear-gradient(180deg, #35a7ff, #1677e8);
+      --btn-info-text: #ffffff;
+      --btn-neutral-bg: #e8eef6;
+      --btn-neutral-text: #334155;
+      --btn-danger-bg: linear-gradient(180deg, #fb7185, #e11d48);
+      --btn-danger-text: #ffffff;
     }
     * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
     html, body { margin: 0; min-height: 100%; color: var(--ink); font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans TC", "PingFang TC", "Microsoft JhengHei", sans-serif; }
@@ -86,6 +96,11 @@
       font-weight: 1000;
     }
     .icon-button { width: 58px; height: 58px; font-size: 25px; }
+    .btn-primary { background: var(--btn-primary-bg) !important; color: var(--btn-primary-text) !important; }
+    .btn-warning { background: var(--btn-warning-bg) !important; color: var(--btn-warning-text) !important; }
+    .btn-info { background: var(--btn-info-bg) !important; color: var(--btn-info-text) !important; }
+    .btn-neutral { background: var(--btn-neutral-bg) !important; color: var(--btn-neutral-text) !important; }
+    .btn-danger { background: var(--btn-danger-bg) !important; color: var(--btn-danger-text) !important; }
     .button-row { display: grid; grid-template-columns: minmax(0, 1fr) 72px; align-items: stretch; gap: 10px; }
     .button-row .icon-button { width: 72px; height: 72px; border-radius: 22px; font-size: 28px; }
     .roster-title-row { display: grid; grid-template-columns: minmax(0, 1fr) 116px; align-items: center; gap: 12px; }
@@ -94,7 +109,7 @@
       width: 100%;
       min-height: 58px;
       border-radius: 18px;
-      background: linear-gradient(180deg, #35a7ff, #1677e8);
+      background: var(--btn-info-bg);
       color: white;
       font-size: 20px;
       white-space: nowrap;
@@ -104,7 +119,7 @@
       min-height: 72px;
       border: 0;
       border-radius: 22px;
-      background: linear-gradient(180deg, #32d873, #18be56);
+      background: var(--btn-primary-bg);
       color: white;
       font-size: clamp(25px, 6vw, 33px);
       font-weight: 1000;
@@ -184,7 +199,10 @@
     .signup-card input { width: 100%; min-height: 56px; border: 1px solid rgba(148,163,184,.28); border-radius: 18px; background: rgba(255,255,255,.95); padding: 0 16px; color: #0f172a; font-size: 22px; font-weight: 950; outline: none; box-sizing: border-box; }
     .signup-card input:focus { border-color: rgba(30,128,255,.7); box-shadow: 0 0 0 4px rgba(30,128,255,.12); }
     .signup-note { margin: 0; color: #9a3412; font-size: 14px; line-height: 1.45; font-weight: 900; }
-    .signup-button { min-height: 62px; border: 0; border-radius: 22px; background: linear-gradient(180deg, #36d66f, #12b95a); color: white; box-shadow: 0 18px 34px rgba(34,197,94,.24); font-size: 24px; font-weight: 1000; }
+    .signup-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .signup-button, .temp-cancel-main { min-height: 62px; border: 0; border-radius: 22px; color: white; box-shadow: 0 18px 34px rgba(34,197,94,.18); font-size: 24px; font-weight: 1000; }
+    .signup-button { background: var(--btn-primary-bg); }
+    .temp-cancel-main { background: var(--btn-warning-bg); color: var(--btn-warning-text); box-shadow: 0 18px 34px rgba(245,158,11,.18); }
     .signup-button:disabled { opacity: .55; box-shadow: none; }
     .season-action-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 12px; }
     .season-action-button {
@@ -196,8 +214,8 @@
       font-weight: 1000;
       box-shadow: 0 18px 34px rgba(34,197,94,.2);
     }
-    .season-action-button.leave-main { background: linear-gradient(180deg, #36d66f, #12b95a); }
-    .season-action-button.return-main { background: linear-gradient(180deg, #35a7ff, #1677e8); box-shadow: 0 18px 34px rgba(10,132,255,.18); }
+    .season-action-button.leave-main { background: var(--btn-warning-bg); color: var(--btn-warning-text); box-shadow: 0 18px 34px rgba(245,158,11,.18); }
+    .season-action-button.return-main { background: var(--btn-primary-bg); box-shadow: 0 18px 34px rgba(34,197,94,.2); }
     .season-action-note { margin: 10px 0 0; color: #475569; font-size: 14px; line-height: 1.45; font-weight: 900; }
     .section-list { display: grid; gap: 10px; }
     details.roster {
@@ -252,14 +270,14 @@
       font-weight: 1000;
     }
     .cancel-temp {
-      background: #fee2e2;
-      color: #b91c1c;
-      box-shadow: 0 8px 18px rgba(185,28,28,.12);
+      background: var(--btn-warning-bg);
+      color: var(--btn-warning-text);
+      box-shadow: 0 8px 18px rgba(245,158,11,.14);
     }
     .season-leave {
-      background: linear-gradient(180deg, #36d66f, #12b95a);
-      color: white;
-      box-shadow: 0 8px 18px rgba(34,197,94,.14);
+      background: var(--btn-warning-bg);
+      color: var(--btn-warning-text);
+      box-shadow: 0 8px 18px rgba(245,158,11,.14);
     }
     .season-return {
       background: #e8f2ff;
@@ -473,8 +491,9 @@
     .confirm-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 22px; }
     .confirm-actions button { min-height: 64px; border: 0; border-radius: 20px; font-size: 23px; font-weight: 1000; }
     .confirm-cancel { background: #e8eef6; color: #334155; }
-    .confirm-ok { background: linear-gradient(180deg, #36d66f, #12b95a); color: white; box-shadow: 0 16px 30px rgba(34,197,94,.22); }
-    .confirm-ok.danger { background: linear-gradient(180deg, #fb7185, #e11d48); box-shadow: 0 16px 30px rgba(225,29,72,.18); }
+    .confirm-ok { background: var(--btn-primary-bg); color: white; box-shadow: 0 16px 30px rgba(34,197,94,.22); }
+    .confirm-ok.warning { background: var(--btn-warning-bg); color: var(--btn-warning-text); box-shadow: 0 16px 30px rgba(245,158,11,.18); }
+    .confirm-ok.danger { background: var(--btn-danger-bg); color: var(--btn-danger-text); box-shadow: 0 16px 30px rgba(225,29,72,.18); }
     .toast { position: fixed; left: 12px; right: 12px; bottom: calc(14px + env(safe-area-inset-bottom)); z-index: 30; display: none; max-width: 520px; margin: 0 auto; padding: 13px 15px; border-radius: 17px; background: rgba(255,255,255,.94); box-shadow: 0 18px 46px rgba(15,23,42,.18); font-size: 17px; font-weight: 900; color: #334155; }
     .toast.show { display: block; }
     .skeleton { position: relative; overflow: hidden; color: transparent !important; background: #eaf1f8 !important; }
@@ -501,9 +520,9 @@
 <body>
   <div class="app">
     <header class="hero">
-      <img src="../icon-180.png?v=5-alpha-12" alt="羽球報名">
+      <img src="../icon-180.png?v=5-alpha-13" alt="羽球報名">
       <h1>羽球報名系統</h1>
-      <div class="version">v5 alpha.12</div>
+      <div class="version">v5 alpha.13</div>
     </header>
 
     <section class="panel">
@@ -556,7 +575,10 @@
         <label>姓名
           <input id="signupName" autocomplete="name" placeholder="請輸入姓名">
         </label>
-        <button class="signup-button" id="submitSignup" type="button">✅ 我要報名</button>
+        <div class="signup-actions">
+          <button class="signup-button" id="submitSignup" type="button">✅ 我要報名</button>
+          <button class="temp-cancel-main" id="openTempCancel" type="button">取消報名</button>
+        </div>
         <p class="signup-note">此測試會寫入正式 Google Sheet。請用真實姓名，避免重複報名。</p>
       </div>
     </section>
@@ -645,7 +667,7 @@
     const state = { events: [], selectedEventId: "", selectedEvent: null, rosterLoaded: false, sections: {}, loadingSections: {}, preloadingRoster: false };
 
     function cacheKey(api, params) {
-      return "v5-alpha.12:" + api + ":" + JSON.stringify(params || {});
+      return "v5-alpha.13:" + api + ":" + JSON.stringify(params || {});
     }
 
     function readCache(api, params) {
@@ -840,7 +862,9 @@
         document.getElementById("confirmName").textContent = options.name || "";
         document.getElementById("confirmMessage").textContent = options.message || "";
         ok.textContent = options.okText || "確認";
-        ok.classList.toggle("danger", !!options.danger);
+        ok.classList.remove("warning", "danger");
+        ok.classList.toggle("warning", options.tone === "warning" || !!options.warning);
+        ok.classList.toggle("danger", options.tone === "danger" || !!options.danger);
         modal.classList.add("show");
         modal.setAttribute("aria-hidden", "false");
       });
@@ -1005,14 +1029,15 @@
       });
     }
     function openMemberSheet(mode, players) {
-      const title = mode === "return" ? "選擇恢復出席成員" : "選擇請假的季打成員";
-      const actionText = mode === "return" ? "恢復出席" : "我要請假";
-      const helpText = mode === "return" ? "從目前季打請假名單選擇。" : "從目前正式名單選擇季打成員。";
+      const isTempCancel = mode === "tempCancel";
+      const title = isTempCancel ? "選擇取消報名人員" : mode === "return" ? "選擇恢復出席成員" : "選擇請假的季打成員";
+      const actionText = isTempCancel ? "取消報名" : mode === "return" ? "恢復出席" : "我要請假";
+      const helpText = isTempCancel ? "從目前臨打名單選擇。" : mode === "return" ? "從目前季打請假名單選擇。" : "從目前正式名單選擇季打成員。";
       const wrap = document.getElementById("memberOptions");
       document.getElementById("memberSheetTitle").textContent = title;
-      const fixedPlayers = (players || []).filter((p) => text(p.type) === "fixed");
-      wrap.innerHTML = fixedPlayers.length
-        ? fixedPlayers.map((p) => {
+      const selectablePlayers = (players || []).filter((p) => isTempCancel ? text(p.type) === "temp" : text(p.type) === "fixed");
+      wrap.innerHTML = selectablePlayers.length
+        ? selectablePlayers.map((p) => {
           const signupId = escapeHtml(p.signupId);
           const name = escapeHtml(text(p.name, "未命名"));
           return `<button class="member-option" type="button" data-member-action="${mode}" data-signup-id="${signupId}" data-name="${name}">
@@ -1020,7 +1045,7 @@
             <small>${actionText}</small>
           </button>`;
         }).join("")
-        : `<div class="empty-member">${helpText}<br>目前沒有可操作的季打成員。</div>`;
+        : `<div class="empty-member">${helpText}<br>目前沒有可操作的人員。</div>`;
       document.getElementById("memberSheet").classList.add("show");
       document.getElementById("memberSheet").setAttribute("aria-hidden", "false");
     }
@@ -1038,6 +1063,23 @@
         if (!data.ok) throw new Error(data.error || "讀取失敗");
         closeActionModal();
         openMemberSheet(mode, data.payload && data.payload.players ? data.payload.players : []);
+      } catch (err) {
+        showActionModal("error", "讀取失敗", err.message || "請稍後再試。");
+      }
+    }
+    async function openTempCancelPicker() {
+      if (!state.selectedEventId) return toast("請先選擇聚會");
+      showActionModal("", "讀取中", "正在讀取臨打名單，請稍候。");
+      try {
+        const confirmedData = await apiFetch("v5RosterSection", { eventId: state.selectedEventId, section: "confirmed" }, { force: true });
+        if (!confirmedData.ok) throw new Error(confirmedData.error || "讀取失敗");
+        const waitingData = await apiFetch("v5RosterSection", { eventId: state.selectedEventId, section: "waiting" }, { force: true });
+        if (!waitingData.ok) throw new Error(waitingData.error || "讀取失敗");
+        closeActionModal();
+        const players = []
+          .concat(confirmedData.payload && confirmedData.payload.players ? confirmedData.payload.players : [])
+          .concat(waitingData.payload && waitingData.payload.players ? waitingData.payload.players : []);
+        openMemberSheet("tempCancel", players);
       } catch (err) {
         showActionModal("error", "讀取失敗", err.message || "請稍後再試。");
       }
@@ -1234,9 +1276,13 @@
         const data = await apiWrite("v5SignupTemp", { eventId: state.selectedEventId, name, phone: "" });
         if (!data.ok) throw new Error(data.error || "報名失敗");
         input.value = "";
-        const status = data.payload && data.payload.signedStatus ? data.payload.signedStatus : "";
+        const displayStatus = data.payload && data.payload.displayStatus ? data.payload.displayStatus : "";
+        const position = Number(data.payload && data.payload.position) || 0;
+        const resultText = displayStatus
+          ? `${displayStatus}${position ? `第 ${position} 位` : ""}`
+          : "已完成報名";
         await syncAfterMutationWithoutRoster("報名成功，正在更新聚會人數...");
-        showActionModal("done", "報名成功", status ? `已完成報名：${status}。名單已收合，點開名單時會重新讀取。` : "已完成報名。名單已收合，點開名單時會重新讀取。");
+        showActionModal("done", "報名成功", resultText);
       } catch (err) {
         showActionModal("error", "報名失敗", err.message || "報名失敗，請稍後再試。");
       } finally {
@@ -1254,7 +1300,7 @@
         name: displayName,
         message: "取消後候補會自動重排。",
         okText: "確認取消",
-        danger: true
+        tone: "warning"
       });
       if (!ok) return;
       button.disabled = true;
@@ -1266,7 +1312,8 @@
         const data = await apiWrite("v5CancelTempSignup", { eventId: state.selectedEventId, signupId });
         if (!data.ok) throw new Error(data.error || "取消失敗");
         await syncAfterMutationWithoutRoster("取消成功，正在更新聚會人數...");
-        showActionModal("done", "取消成功", data.payload && data.payload.message ? `${data.payload.message}。名單已收合，點開名單時會重新讀取。` : "已取消報名。名單已收合，點開名單時會重新讀取。");
+        closeMemberSheet();
+        showActionModal("done", "取消成功", "已取消報名");
       } catch (err) {
         showActionModal("error", "取消失敗", err.message || "取消失敗，請稍後再試。");
       } finally {
@@ -1283,7 +1330,8 @@
         title: "季打請假",
         name: displayName,
         message: "請假後會釋出名額。\n候補會依順位補上。",
-        okText: "確認請假"
+        okText: "確認請假",
+        tone: "warning"
       });
       if (!ok) return;
       closeMemberSheet();
@@ -1295,7 +1343,7 @@
         const data = await apiWrite("v5FixedLeave", { eventId: state.selectedEventId, signupId });
         if (!data.ok) throw new Error(data.error || "請假失敗");
         await syncAfterMutationWithoutRoster("請假完成，正在更新聚會人數...");
-        showActionModal("done", "請假成功", data.payload && data.payload.message ? `${data.payload.message}。名單已收合，點開名單時會重新讀取。` : "已完成季打請假。名單已收合，點開名單時會重新讀取。");
+        showActionModal("done", "請假成功", data.payload && data.payload.message ? data.payload.message : "30 分鐘內可恢復原順位");
       } catch (err) {
         showActionModal("error", "請假失敗", err.message || "請假失敗，請稍後再試。");
       } finally {
@@ -1323,7 +1371,7 @@
         const data = await apiWrite("v5FixedReturn", { eventId: state.selectedEventId, signupId });
         if (!data.ok) throw new Error(data.error || "恢復失敗");
         await syncAfterMutationWithoutRoster("恢復完成，正在更新聚會人數...");
-        showActionModal("done", "恢復成功", data.payload && data.payload.message ? `${data.payload.message}。名單已收合，點開名單時會重新讀取。` : "已恢復出席。名單已收合，點開名單時會重新讀取。");
+        showActionModal("done", "恢復成功", data.payload && data.payload.message ? data.payload.message : "已回到正式名單");
       } catch (err) {
         showActionModal("error", "恢復失敗", err.message || "恢復失敗，請稍後再試。");
       } finally {
@@ -1364,6 +1412,7 @@
     });
     document.getElementById("loadRoster").addEventListener("click", loadRoster);
     document.getElementById("submitSignup").addEventListener("click", submitSignup);
+    document.getElementById("openTempCancel").addEventListener("click", openTempCancelPicker);
     document.addEventListener("click", (event) => {
       const button = event.target.closest(".cancel-temp");
       if (button) cancelTempSignup(button.dataset.signupId, button.dataset.name, button);
@@ -1373,7 +1422,9 @@
       if (seasonReturnButton) fixedReturn(seasonReturnButton.dataset.signupId, seasonReturnButton.dataset.name, seasonReturnButton);
       const memberButton = event.target.closest(".member-option");
       if (memberButton) {
-        if (memberButton.dataset.memberAction === "return") {
+        if (memberButton.dataset.memberAction === "tempCancel") {
+          cancelTempSignup(memberButton.dataset.signupId, memberButton.dataset.name, memberButton);
+        } else if (memberButton.dataset.memberAction === "return") {
           fixedReturn(memberButton.dataset.signupId, memberButton.dataset.name, memberButton);
         } else {
           fixedLeave(memberButton.dataset.signupId, memberButton.dataset.name, memberButton);
