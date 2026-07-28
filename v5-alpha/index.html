@@ -7,10 +7,10 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-title" content="羽球報名 Alpha">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <title>羽球報名 v5.0.0-alpha.13</title>
+  <title>羽球報名 v5.0.0-alpha.14</title>
   <link rel="manifest" href="./manifest.webmanifest">
-  <link rel="apple-touch-icon" sizes="180x180" href="../icon-180.png?v=5-alpha-13">
-  <link rel="icon" type="image/png" sizes="192x192" href="../icon-192.png?v=5-alpha-13">
+  <link rel="apple-touch-icon" sizes="180x180" href="../icon-180.png?v=5-alpha-14">
+  <link rel="icon" type="image/png" sizes="192x192" href="../icon-192.png?v=5-alpha-14">
   <style>
     :root {
       --ink: #0f172a;
@@ -217,6 +217,93 @@
     .season-action-button.leave-main { background: var(--btn-warning-bg); color: var(--btn-warning-text); box-shadow: 0 18px 34px rgba(245,158,11,.18); }
     .season-action-button.return-main { background: var(--btn-primary-bg); box-shadow: 0 18px 34px rgba(34,197,94,.2); }
     .season-action-note { margin: 10px 0 0; color: #475569; font-size: 14px; line-height: 1.45; font-weight: 900; }
+    .admin-login { display: grid; gap: 10px; margin-top: 12px; }
+    .admin-login label,
+    .admin-form label {
+      display: grid;
+      gap: 6px;
+      color: #475569;
+      font-size: 15px;
+      font-weight: 950;
+    }
+    .admin-login input,
+    .admin-form input,
+    .admin-form select,
+    .admin-form textarea {
+      width: 100%;
+      min-height: 54px;
+      border: 1px solid rgba(148,163,184,.28);
+      border-radius: 16px;
+      background: rgba(255,255,255,.95);
+      padding: 0 14px;
+      color: #0f172a;
+      font-size: 20px;
+      font-weight: 950;
+      outline: none;
+    }
+    .admin-form textarea {
+      min-height: 86px;
+      padding: 12px 14px;
+      resize: vertical;
+    }
+    .admin-button {
+      min-height: 60px;
+      border: 0;
+      border-radius: 20px;
+      font-size: 22px;
+      font-weight: 1000;
+      box-shadow: 0 14px 28px rgba(15,23,42,.12);
+    }
+    .admin-area { display: none; gap: 12px; margin-top: 14px; }
+    .admin-area.show { display: grid; }
+    .admin-fold {
+      border-radius: 22px;
+      background: rgba(255,255,255,.80);
+      box-shadow: 0 10px 24px rgba(15,23,42,.08);
+      overflow: hidden;
+    }
+    .admin-fold summary {
+      list-style: none;
+      min-height: 66px;
+      padding: 14px 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      font-size: 22px;
+      font-weight: 1000;
+    }
+    .admin-fold summary::-webkit-details-marker { display: none; }
+    .admin-fold-body { display: grid; gap: 12px; padding: 0 14px 14px; }
+    .admin-card {
+      display: grid;
+      gap: 10px;
+      padding: 14px;
+      border: 1px solid rgba(148,163,184,.22);
+      border-radius: 18px;
+      background: rgba(255,255,255,.78);
+    }
+    .admin-card h3 { margin: 0; font-size: 22px; line-height: 1.15; font-weight: 1000; }
+    .admin-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .admin-grid .full,
+    .admin-actions .full { grid-column: 1 / -1; }
+    .admin-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .admin-mini { color: #64748b; font-size: 14px; line-height: 1.4; font-weight: 900; }
+    .admin-kpis { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+    .admin-kpi {
+      border-radius: 14px;
+      background: #f8fafc;
+      padding: 10px 6px;
+      text-align: center;
+      font-weight: 1000;
+    }
+    .admin-kpi .num { display: block; color: #2563c7; font-size: 18px; line-height: 1.1; }
+    .admin-kpi .label { display: block; margin-top: 4px; color: #64748b; font-size: 12px; line-height: 1.1; }
+    @media (max-width: 430px) {
+      .admin-grid,
+      .admin-actions { grid-template-columns: 1fr; }
+      .admin-kpis { grid-template-columns: 1fr 1fr; }
+    }
     .section-list { display: grid; gap: 10px; }
     details.roster {
       border-radius: 22px;
@@ -520,9 +607,9 @@
 <body>
   <div class="app">
     <header class="hero">
-      <img src="../icon-180.png?v=5-alpha-13" alt="羽球報名">
+      <img src="../icon-180.png?v=5-alpha-14" alt="羽球報名">
       <h1>羽球報名系統</h1>
-      <div class="version">v5 alpha.13</div>
+      <div class="version">v5 alpha.14</div>
     </header>
 
     <section class="panel">
@@ -613,6 +700,111 @@
         </details>
       </div>
     </section>
+
+    <section class="panel">
+      <p class="kicker">ADMIN</p>
+      <div class="title-row">
+        <h2>管理員功能</h2>
+      </div>
+      <div class="admin-login">
+        <label>管理員密碼
+          <input id="adminPassword" type="password" autocomplete="current-password" placeholder="請輸入管理員密碼">
+        </label>
+        <button class="admin-button btn-info" id="adminUnlock" type="button">開啟管理功能</button>
+      </div>
+      <div class="admin-area" id="adminArea">
+        <details class="admin-fold" id="adminCreateFold">
+          <summary><span>1. 開立新聚會</span><span>⌄</span></summary>
+          <div class="admin-fold-body admin-form">
+            <div class="admin-card">
+              <h3>聚會基本資料</h3>
+              <div class="admin-grid">
+                <label class="full">聚會名稱<input id="newEventName" placeholder="例如：8/6 日安"></label>
+                <label>聚會日期<input id="newEventDate" type="date"></label>
+                <label>人數上限<input id="newMaxPeople" type="number" inputmode="numeric" min="1" value="18"></label>
+                <label class="full">季打群組<select id="newGroupId"></select></label>
+                <label class="full">歸屬賽季<select id="newSeasonId"></select></label>
+                <label>用球<input id="newBallType" value="MS-101"></label>
+                <label>零打費用<input id="newTempFee" type="number" inputmode="numeric" min="0" value="245"></label>
+              </div>
+            </div>
+            <div class="admin-card">
+              <h3>單場支出預設值</h3>
+              <div class="admin-grid">
+                <label>預設場地數<input id="newDefaultCourtCount" type="number" inputmode="decimal" min="0" step="0.5" value="1"></label>
+                <label>預設時數<input id="newDefaultHours" type="number" inputmode="decimal" min="0" step="0.5" value="2"></label>
+                <label>預設冷氣時數<input id="newDefaultAcHours" type="number" inputmode="decimal" min="0" step="0.5" value="0"></label>
+                <div class="full admin-mini">建立後會自動加入季打成員，並建立本場支出草稿，後續收費與損益才有基準。</div>
+              </div>
+              <div class="admin-actions">
+                <button class="admin-button btn-primary full" id="createEventBtn" type="button">建立聚會</button>
+              </div>
+            </div>
+          </div>
+        </details>
+
+        <details class="admin-fold" id="adminEditFold">
+          <summary><span>2. 修改目前聚會</span><span>⌄</span></summary>
+          <div class="admin-fold-body admin-form">
+            <div class="admin-card">
+              <h3>選擇要修改的聚會</h3>
+              <label>目前開放聚會<select id="editEventId"></select></label>
+              <div class="admin-actions">
+                <button class="admin-button btn-info full" id="loadAdminEvent" type="button">讀取聚會資料</button>
+              </div>
+            </div>
+            <div class="admin-card">
+              <h3>聚會設定</h3>
+              <div class="admin-grid">
+                <label>人數上限<input id="editMaxPeople" type="number" inputmode="numeric" min="1"></label>
+                <label>用球<input id="editBallType"></label>
+                <label>零打費用<input id="editTempFee" type="number" inputmode="numeric" min="0"></label>
+                <label class="full">聚會備註<textarea id="editEventNote" placeholder="空白則不顯示"></textarea></label>
+              </div>
+              <div class="admin-actions">
+                <button class="admin-button btn-info" id="saveEventSettings" type="button">儲存設定</button>
+                <button class="admin-button btn-danger" id="closeAdminEvent" type="button">關閉聚會</button>
+              </div>
+            </div>
+            <div class="admin-card">
+              <h3>單場支出紀錄</h3>
+              <div class="admin-grid">
+                <label class="full">歸屬賽季<select id="usageSeasonId"></select></label>
+                <label>實際場地數<input id="usageCourtCount" type="number" inputmode="decimal" min="0" step="0.5"></label>
+                <label>實際時數<input id="usageHours" type="number" inputmode="decimal" min="0" step="0.5"></label>
+                <label>實際用球數<input id="usageBallUsed" type="number" inputmode="numeric" min="0"></label>
+                <label>冷氣時數<input id="usageAcHours" type="number" inputmode="decimal" min="0" step="0.5"></label>
+                <label>本場雜資<input id="usageMiscFee" type="number" inputmode="numeric" min="0"></label>
+                <label>場地單價<input id="usageCourtUnit" type="number" inputmode="numeric" min="0"></label>
+                <label>場地折扣<input id="usageCourtDiscount" type="number" inputmode="decimal" min="0" step="0.01"></label>
+                <label>球單價<input id="usageBallUnit" type="number" inputmode="numeric" min="0"></label>
+                <label>冷氣單價<input id="usageAcUnit" type="number" inputmode="numeric" min="0"></label>
+                <label class="full">備註<textarea id="usageNote" placeholder="可空白"></textarea></label>
+              </div>
+              <div class="admin-kpis" id="usagePreview">
+                <div class="admin-kpi"><span class="num">0</span><span class="label">場地</span></div>
+                <div class="admin-kpi"><span class="num">0</span><span class="label">球</span></div>
+                <div class="admin-kpi"><span class="num">0</span><span class="label">冷氣</span></div>
+                <div class="admin-kpi"><span class="num">0</span><span class="label">合計</span></div>
+              </div>
+              <div class="admin-actions">
+                <button class="admin-button btn-primary full" id="saveEventUsage" type="button">儲存本場支出</button>
+              </div>
+            </div>
+          </div>
+        </details>
+
+        <details class="admin-fold" id="adminPayFold">
+          <summary><span>3. 收費管理</span><span>⌄</span></summary>
+          <div class="admin-fold-body">
+            <div class="admin-card">
+              <h3>下一步搬移</h3>
+              <div class="admin-mini">接續會搬入臨打收費狀態、季打收費統計、本場支出與當天損益。此版先確保開場與支出資料正確，避免計算基礎錯誤。</div>
+            </div>
+          </div>
+        </details>
+      </div>
+    </section>
   </div>
 
   <div class="sheet" id="eventSheet" aria-hidden="true">
@@ -663,11 +855,24 @@
     const SITE = "kangxuan";
     const CACHE_TTL_MS = 30000;
     const JSONP_TIMEOUT_MS = 25000;
-    const RETRYABLE_APIS = { v5Init: true, v5EventBasic: true, v5EventRoster: true, v5RosterSection: true };
-    const state = { events: [], selectedEventId: "", selectedEvent: null, rosterLoaded: false, sections: {}, loadingSections: {}, preloadingRoster: false };
+    const RETRYABLE_APIS = { v5Init: true, v5EventBasic: true, v5EventRoster: true, v5RosterSection: true, v5AdminInit: true, v5AdminEventData: true };
+    const state = {
+      events: [],
+      selectedEventId: "",
+      selectedEvent: null,
+      rosterLoaded: false,
+      sections: {},
+      loadingSections: {},
+      preloadingRoster: false,
+      adminPassword: "",
+      adminUnlocked: false,
+      adminEvents: [],
+      adminGroups: [],
+      adminSeasons: []
+    };
 
     function cacheKey(api, params) {
-      return "v5-alpha.13:" + api + ":" + JSON.stringify(params || {});
+      return "v5-alpha.14:" + api + ":" + JSON.stringify(params || {});
     }
 
     function readCache(api, params) {
@@ -726,7 +931,7 @@
       for (let i = 0; i < attempts; i += 1) {
         try {
           const data = await jsonp(api, Object.assign({}, params, { t: Date.now(), attempt: i + 1 }));
-          if (data && data.ok) writeCache(api, params, data);
+          if (data && data.ok && !options.noCache) writeCache(api, params, data);
           return data;
         } catch (err) {
           lastErr = err;
@@ -1379,6 +1584,247 @@
         button.textContent = "恢復";
       }
     }
+    function value(id) {
+      const el = document.getElementById(id);
+      return el ? el.value : "";
+    }
+    function setValue(id, nextValue) {
+      const el = document.getElementById(id);
+      if (el) el.value = nextValue == null ? "" : nextValue;
+    }
+    function numberValue(id, fallback = 0) {
+      const raw = value(id);
+      if (raw === "") return fallback;
+      const n = Number(raw);
+      return Number.isFinite(n) ? n : fallback;
+    }
+    function setSelectOptions(id, items, valueKey, labelFn, placeholder) {
+      const el = document.getElementById(id);
+      if (!el) return;
+      const options = [];
+      if (placeholder) options.push(`<option value="">${escapeHtml(placeholder)}</option>`);
+      (items || []).forEach((item) => {
+        const optionValue = escapeHtml(text(item[valueKey]));
+        const label = escapeHtml(labelFn ? labelFn(item) : text(item[valueKey]));
+        options.push(`<option value="${optionValue}">${label}</option>`);
+      });
+      el.innerHTML = options.join("");
+    }
+    function renderAdminOptions(payload) {
+      payload = payload || {};
+      state.adminEvents = payload.events || state.adminEvents || [];
+      state.adminGroups = payload.groups || state.adminGroups || [];
+      state.adminSeasons = payload.seasons || state.adminSeasons || [];
+      const eventLabel = (event) => [optionTitle(event), formatDate(event.eventDate), weekday(event.eventDate)].filter(Boolean).join("｜");
+      setSelectOptions("newGroupId", state.adminGroups, "groupId", (group) => text(group.groupName, group.groupId), "請選擇季打群組");
+      setSelectOptions("newSeasonId", state.adminSeasons, "seasonId", (season) => text(season.seasonName, season.seasonId), "請選擇歸屬賽季");
+      setSelectOptions("usageSeasonId", state.adminSeasons, "seasonId", (season) => text(season.seasonName, season.seasonId), "請選擇歸屬賽季");
+      setSelectOptions("editEventId", state.adminEvents, "eventId", eventLabel, "請選擇聚會");
+      if (state.selectedEventId) {
+        setValue("editEventId", state.selectedEventId);
+      }
+      const today = new Date();
+      if (!value("newEventDate")) {
+        setValue("newEventDate", `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, "0")}-${String(today.getDate()).padStart(2, "0")}`);
+      }
+    }
+    async function adminUnlock() {
+      const password = value("adminPassword").trim();
+      if (!password) return toast("請輸入管理員密碼");
+      showActionModal("", "讀取中", "正在開啟管理員功能。");
+      try {
+        const data = await apiFetch("v5AdminInit", { password }, { force: true, noCache: true });
+        if (!data.ok) throw new Error(data.error || "管理員功能讀取失敗");
+        state.adminPassword = password;
+        state.adminUnlocked = true;
+        document.getElementById("adminArea").classList.add("show");
+        renderAdminOptions(data.payload);
+        closeActionModal();
+        toast("管理員功能已開啟");
+        if (state.selectedEventId) loadAdminEventData(state.selectedEventId);
+      } catch (err) {
+        showActionModal("error", "開啟失敗", err.message || "請確認管理員密碼。");
+      }
+    }
+    async function createAdminEvent() {
+      if (!state.adminPassword) return toast("請先開啟管理員功能");
+      const eventName = value("newEventName").trim();
+      const eventDate = value("newEventDate");
+      const maxPeople = numberValue("newMaxPeople", 0);
+      const groupId = value("newGroupId");
+      const seasonId = value("newSeasonId");
+      if (!eventName || !eventDate || !maxPeople || !groupId || !seasonId) {
+        return toast("請填完整聚會名稱、日期、上限、群組、賽季");
+      }
+      const ok = await showConfirmDialog({
+        title: "建立新聚會",
+        name: eventName,
+        message: "建立後會自動加入季打成員，並建立本場支出草稿。",
+        okText: "確認建立"
+      });
+      if (!ok) return;
+      showActionModal("", "建立中", "正在建立聚會與季打名單。");
+      try {
+        const data = await apiWrite("v5CreateEvent", {
+          password: state.adminPassword,
+          eventName,
+          eventDate,
+          maxPeople,
+          groupId,
+          ballType: value("newBallType"),
+          tempFee: numberValue("newTempFee", 0),
+          seasonId,
+          defaultCourtCount: numberValue("newDefaultCourtCount", 1),
+          defaultHours: numberValue("newDefaultHours", 2),
+          defaultAcHours: numberValue("newDefaultAcHours", 0)
+        });
+        if (!data.ok) throw new Error(data.error || "建立失敗");
+        renderAdminOptions(data.payload && data.payload.admin);
+        state.selectedEventId = data.payload.eventId || state.selectedEventId;
+        if (data.payload && data.payload.detail) {
+          mergeSelectedEventSummary(data.payload.detail);
+          renderEvent(data.payload.detail);
+        }
+        setValue("newEventName", "");
+        showActionModal("done", "建立成功", "新聚會已建立，季打名單與支出草稿已準備。");
+      } catch (err) {
+        showActionModal("error", "建立失敗", err.message || "請稍後再試。");
+      }
+    }
+    async function loadAdminEventData(eventId) {
+      if (!state.adminPassword) return toast("請先開啟管理員功能");
+      eventId = eventId || value("editEventId") || state.selectedEventId;
+      if (!eventId) return toast("請先選擇聚會");
+      showActionModal("", "讀取中", "正在讀取聚會設定與本場支出。");
+      try {
+        const data = await apiFetch("v5AdminEventData", { password: state.adminPassword, eventId }, { force: true, noCache: true });
+        if (!data.ok) throw new Error(data.error || "讀取失敗");
+        fillAdminEventData(data.payload);
+        closeActionModal();
+      } catch (err) {
+        showActionModal("error", "讀取失敗", err.message || "請稍後再試。");
+      }
+    }
+    function fillAdminEventData(payload) {
+      payload = payload || {};
+      const event = payload.event || {};
+      const usage = payload.usageData && payload.usageData.usage ? payload.usageData.usage : {};
+      setValue("editEventId", event.eventId || "");
+      setValue("editMaxPeople", event.maxPeople || "");
+      setValue("editBallType", event.ballType || "");
+      setValue("editTempFee", event.tempFee || "");
+      setValue("editEventNote", event.eventNote || "");
+      setValue("usageSeasonId", usage.seasonId || event.seasonId || "");
+      setValue("usageCourtCount", usage.actualCourtCount || event.defaultCourtCount || "");
+      setValue("usageHours", usage.actualHours || event.defaultHours || "");
+      setValue("usageBallUsed", usage.actualBallUsed || "");
+      setValue("usageAcHours", usage.actualAcHours || event.defaultAcHours || "");
+      setValue("usageMiscFee", usage.actualMiscFee || 0);
+      setValue("usageCourtUnit", usage.courtFeePerCourtHour || "");
+      setValue("usageCourtDiscount", usage.courtDiscountRate || 1);
+      setValue("usageBallUnit", usage.shuttleUnitCost || "");
+      setValue("usageAcUnit", usage.acFeePerHour || "");
+      setValue("usageNote", usage.note || "");
+      updateAdminUsagePreview(usage);
+    }
+    async function saveAdminEventSettings() {
+      if (!state.adminPassword) return toast("請先開啟管理員功能");
+      const eventId = value("editEventId") || state.selectedEventId;
+      if (!eventId) return toast("請先選擇聚會");
+      showActionModal("", "儲存中", "正在更新聚會設定。");
+      try {
+        const data = await apiWrite("v5UpdateEventSettings", {
+          password: state.adminPassword,
+          eventId,
+          maxPeople: numberValue("editMaxPeople", 0),
+          ballType: value("editBallType"),
+          tempFee: numberValue("editTempFee", 0),
+          eventNote: value("editEventNote")
+        });
+        if (!data.ok) throw new Error(data.error || "儲存失敗");
+        renderAdminOptions(data.payload && data.payload.admin);
+        if (data.payload && data.payload.detail) {
+          mergeSelectedEventSummary(data.payload.detail);
+          renderEvent(data.payload.detail);
+        }
+        showActionModal("done", "儲存成功", "聚會設定已更新。");
+      } catch (err) {
+        showActionModal("error", "儲存失敗", err.message || "請稍後再試。");
+      }
+    }
+    function updateAdminUsagePreview(serverUsage) {
+      const usage = serverUsage || {};
+      const court = usage.actualCourtFee != null
+        ? Number(usage.actualCourtFee) || 0
+        : numberValue("usageCourtUnit", 0) * numberValue("usageCourtDiscount", 1) * numberValue("usageCourtCount", 0) * numberValue("usageHours", 0);
+      const ball = usage.actualBallFee != null
+        ? Number(usage.actualBallFee) || 0
+        : numberValue("usageBallUnit", 0) * numberValue("usageBallUsed", 0);
+      const ac = usage.actualAcFee != null
+        ? Number(usage.actualAcFee) || 0
+        : numberValue("usageAcUnit", 0) * numberValue("usageAcHours", 0);
+      const misc = usage.actualMiscFee != null ? Number(usage.actualMiscFee) || 0 : numberValue("usageMiscFee", 0);
+      const total = usage.actualTotalCost != null ? Number(usage.actualTotalCost) || 0 : court + ball + ac + misc;
+      document.getElementById("usagePreview").innerHTML = [
+        ["場地", court],
+        ["球", ball],
+        ["冷氣", ac],
+        ["合計", total]
+      ].map(([label, num]) => `<div class="admin-kpi"><span class="num">${Math.round(num).toLocaleString()}</span><span class="label">${label}</span></div>`).join("");
+    }
+    async function saveAdminEventUsage() {
+      if (!state.adminPassword) return toast("請先開啟管理員功能");
+      const eventId = value("editEventId") || state.selectedEventId;
+      if (!eventId) return toast("請先選擇聚會");
+      showActionModal("", "儲存中", "正在儲存本場支出紀錄。");
+      try {
+        const data = await apiWrite("v5UpdateEventUsage", {
+          password: state.adminPassword,
+          eventId,
+          seasonId: value("usageSeasonId"),
+          actualCourtCount: numberValue("usageCourtCount", 0),
+          actualHours: numberValue("usageHours", 0),
+          actualBallUsed: numberValue("usageBallUsed", 0),
+          actualAcHours: numberValue("usageAcHours", 0),
+          actualMiscFee: numberValue("usageMiscFee", 0),
+          courtFeePerCourtHour: numberValue("usageCourtUnit", 0),
+          courtDiscountRate: numberValue("usageCourtDiscount", 1),
+          shuttleUnitCost: numberValue("usageBallUnit", 0),
+          acFeePerHour: numberValue("usageAcUnit", 0),
+          note: value("usageNote")
+        });
+        if (!data.ok) throw new Error(data.error || "儲存失敗");
+        const usage = data.payload && data.payload.usageData && data.payload.usageData.usage ? data.payload.usageData.usage : null;
+        if (usage) updateAdminUsagePreview(usage);
+        showActionModal("done", "儲存成功", "本場支出紀錄已更新。");
+      } catch (err) {
+        showActionModal("error", "儲存失敗", err.message || "請稍後再試。");
+      }
+    }
+    async function closeAdminEvent() {
+      if (!state.adminPassword) return toast("請先開啟管理員功能");
+      const eventId = value("editEventId") || state.selectedEventId;
+      if (!eventId) return toast("請先選擇聚會");
+      const event = state.adminEvents.find((item) => item.eventId === eventId) || {};
+      const ok = await showConfirmDialog({
+        title: "關閉聚會",
+        name: optionTitle(event),
+        message: "關閉後一般使用者不會再看到這場聚會。",
+        okText: "確認關閉",
+        tone: "danger"
+      });
+      if (!ok) return;
+      showActionModal("", "關閉中", "正在關閉聚會。");
+      try {
+        const data = await apiWrite("v5CloseEvent", { password: state.adminPassword, eventId });
+        if (!data.ok) throw new Error(data.error || "關閉失敗");
+        renderAdminOptions(data.payload && data.payload.admin);
+        if (state.selectedEventId === eventId) renderNoEventSelected();
+        showActionModal("done", "已關閉", "此聚會已關閉。");
+      } catch (err) {
+        showActionModal("error", "關閉失敗", err.message || "請稍後再試。");
+      }
+    }
     function openPicker() { document.getElementById("eventSheet").classList.add("show"); renderOptions(); }
     function closePicker() { document.getElementById("eventSheet").classList.remove("show"); }
     document.getElementById("openPicker").addEventListener("click", openPicker);
@@ -1413,6 +1859,27 @@
     document.getElementById("loadRoster").addEventListener("click", loadRoster);
     document.getElementById("submitSignup").addEventListener("click", submitSignup);
     document.getElementById("openTempCancel").addEventListener("click", openTempCancelPicker);
+    document.getElementById("adminUnlock").addEventListener("click", adminUnlock);
+    document.getElementById("createEventBtn").addEventListener("click", createAdminEvent);
+    document.getElementById("editEventId").addEventListener("change", (event) => loadAdminEventData(event.target.value));
+    document.getElementById("loadAdminEvent").addEventListener("click", () => loadAdminEventData());
+    document.getElementById("saveEventSettings").addEventListener("click", saveAdminEventSettings);
+    document.getElementById("saveEventUsage").addEventListener("click", saveAdminEventUsage);
+    document.getElementById("closeAdminEvent").addEventListener("click", closeAdminEvent);
+    [
+      "usageCourtCount",
+      "usageHours",
+      "usageBallUsed",
+      "usageAcHours",
+      "usageMiscFee",
+      "usageCourtUnit",
+      "usageCourtDiscount",
+      "usageBallUnit",
+      "usageAcUnit"
+    ].forEach((id) => {
+      const el = document.getElementById(id);
+      if (el) el.addEventListener("input", () => updateAdminUsagePreview());
+    });
     document.addEventListener("click", (event) => {
       const button = event.target.closest(".cancel-temp");
       if (button) cancelTempSignup(button.dataset.signupId, button.dataset.name, button);
