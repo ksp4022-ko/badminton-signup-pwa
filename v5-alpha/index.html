@@ -7,10 +7,10 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-title" content="羽球報名 Alpha">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <title>羽球報名 v5.0.0-alpha.23</title>
+  <title>羽球報名 v5.0.0-alpha.24</title>
   <link rel="manifest" href="./manifest.webmanifest">
-  <link rel="apple-touch-icon" sizes="180x180" href="../icon-180.png?v=5-alpha-23">
-  <link rel="icon" type="image/png" sizes="192x192" href="../icon-192.png?v=5-alpha-23">
+  <link rel="apple-touch-icon" sizes="180x180" href="../icon-180.png?v=5-alpha-24">
+  <link rel="icon" type="image/png" sizes="192x192" href="../icon-192.png?v=5-alpha-24">
   <style>
     :root {
       --ink: #0f172a;
@@ -103,9 +103,10 @@
     .btn-danger { background: var(--btn-danger-bg) !important; color: var(--btn-danger-text) !important; }
     .button-row { display: grid; grid-template-columns: minmax(0, 1fr) 72px; align-items: stretch; gap: 10px; }
     .button-row .icon-button { width: 72px; height: 72px; border-radius: 22px; font-size: 28px; }
-    .roster-title-row { display: grid; grid-template-columns: minmax(0, 1fr) 72px; align-items: center; gap: 12px; }
+    .roster-title-row { display: grid; grid-template-columns: minmax(0, 1fr) 72px 72px; align-items: center; gap: 12px; }
     .roster-title-row h2 { white-space: nowrap; }
-    .roster-refresh {
+    .roster-refresh,
+    .roster-copy {
       width: 100%;
       min-height: 72px;
       border: 1px solid rgba(37,99,235,.16);
@@ -656,6 +657,23 @@
       line-height: 1.42;
       font-weight: 900;
     }
+    .action-copy-text {
+      display: none;
+      width: 100%;
+      min-height: 210px;
+      margin-top: 16px;
+      padding: 14px;
+      border: 1px solid #cbd5e1;
+      border-radius: 16px;
+      background: #f8fafc;
+      color: #0f172a;
+      font-size: 16px;
+      line-height: 1.35;
+      font-weight: 800;
+      text-align: left;
+      resize: vertical;
+    }
+    .action-copy-text.show { display: block; }
     .action-confirm {
       display: none;
       width: 100%;
@@ -729,9 +747,9 @@
 <body>
   <div class="app">
     <header class="hero">
-      <img src="../icon-180.png?v=5-alpha-23" alt="羽球報名">
+      <img src="../icon-180.png?v=5-alpha-24" alt="羽球報名">
       <h1>羽球報名系統</h1>
-      <div class="version">v5 alpha.23</div>
+      <div class="version">v5 alpha.24</div>
     </header>
 
     <section class="panel">
@@ -776,9 +794,9 @@
     </section>
 
     <section class="panel">
-      <p class="kicker">WRITE TEST</p>
+      <p class="kicker">SIGN UP</p>
       <div class="title-row">
-        <h2>臨打報名測試</h2>
+        <h2>臨打報名</h2>
       </div>
       <div class="signup-card">
         <label>姓名
@@ -788,14 +806,14 @@
           <button class="signup-button" id="submitSignup" type="button">✅ 我要報名</button>
           <button class="temp-cancel-main" id="openTempCancel" type="button">取消報名</button>
         </div>
-        <p class="signup-note">此測試會寫入正式 Google Sheet。請用真實姓名，避免重複報名。</p>
       </div>
     </section>
 
     <section class="panel">
-      <p class="kicker">READ ONLY</p>
+      <p class="kicker">MEMBER LIST</p>
       <div class="title-row roster-title-row">
-        <h2>名單預覽</h2>
+        <h2>查看名單</h2>
+        <button class="small-button roster-copy" id="copyRoster" type="button" aria-label="複製 LINE 名單">📋</button>
         <button class="small-button roster-refresh" id="loadRoster" type="button" aria-label="重整名單">🔄</button>
       </div>
       <div class="section-list">
@@ -1075,6 +1093,7 @@
       </div>
       <h3 class="action-title" id="actionTitle">處理中</h3>
       <p class="action-message" id="actionMessage">請稍候，系統正在處理。</p>
+      <textarea class="action-copy-text" id="actionCopyText" readonly></textarea>
       <button class="action-confirm" id="actionConfirm" type="button">確認</button>
     </div>
   </div>
@@ -1118,7 +1137,7 @@
     };
 
     function cacheKey(api, params) {
-      return "v5-alpha.23:" + SITE + ":" + api + ":" + JSON.stringify(params || {});
+      return "v5-alpha.24:" + SITE + ":" + api + ":" + JSON.stringify(params || {});
     }
 
     function readCache(api, params) {
@@ -1294,6 +1313,11 @@
       if (stateName) modal.classList.add(stateName);
       document.getElementById("actionTitle").textContent = title || "處理中";
       document.getElementById("actionMessage").textContent = message || "請稍候，系統正在處理。";
+      const copyText = document.getElementById("actionCopyText");
+      if (copyText) {
+        copyText.value = "";
+        copyText.classList.remove("show");
+      }
       modal.classList.add("show");
       modal.setAttribute("aria-hidden", "false");
     }
@@ -1302,6 +1326,17 @@
       if (!modal) return;
       modal.classList.remove("show", "done", "error");
       modal.setAttribute("aria-hidden", "true");
+    }
+    function showManualCopyModal(value) {
+      showActionModal("done", "請手動複製", "手機瀏覽器不允許自動複製，請長按下方文字複製後貼到 LINE。");
+      const copyText = document.getElementById("actionCopyText");
+      if (!copyText) return;
+      copyText.value = value;
+      copyText.classList.add("show");
+      window.setTimeout(() => {
+        copyText.focus();
+        copyText.select();
+      }, 80);
     }
     let confirmResolver = null;
     function showConfirmDialog(options = {}) {
@@ -1668,6 +1703,79 @@
         toast("已更新開啟中的名單");
       } finally {
         hideMarquee();
+      }
+    }
+    function selectedEventForMessage() {
+      const detailEvent = state.selectedEvent && state.selectedEvent.event ? state.selectedEvent.event : null;
+      if (detailEvent && detailEvent.eventId) return detailEvent;
+      return state.events.find((event) => event.eventId === state.selectedEventId) || {};
+    }
+    function buildLineRosterText(event, confirmedPayload, waitingPayload) {
+      const confirmedPlayers = confirmedPayload && confirmedPayload.players ? confirmedPayload.players : [];
+      const waitingPlayers = waitingPayload && waitingPayload.players ? waitingPayload.players : [];
+      const confirmedCount = Number(confirmedPayload && confirmedPayload.confirmedCount) || confirmedPlayers.length;
+      const waitingCount = Number(waitingPayload && waitingPayload.waitingCount) || waitingPlayers.length;
+      const remainCount = Number(confirmedPayload && confirmedPayload.remainCount) || Number(waitingPayload && waitingPayload.remainCount) || 0;
+      const lines = [
+        `🏸 ${optionTitle(event)}`,
+        `日期：${formatDate(event.eventDate)}${weekday(event.eventDate) ? `｜${weekday(event.eventDate)}` : ""}`,
+        `用球：${text(event.ballType, "MS-101")}`,
+        `零打費用：${Number(event.tempFee) || 0} 元`,
+        "",
+        `✅ 正式名單 ${confirmedCount}人`
+      ];
+      confirmedPlayers.forEach((player, index) => {
+        lines.push(`${index + 1}. ${text(player.name, "未命名")}`);
+      });
+      if (waitingCount > 0) {
+        lines.push("", `⏳ 候補名單 ${waitingCount}人`);
+        waitingPlayers.forEach((player, index) => {
+          lines.push(`${index + 1}. ${text(player.name, "未命名")}`);
+        });
+      }
+      lines.push("");
+      if (remainCount > 0) {
+        lines.push(`目前尚缺 ${remainCount} 人，歡迎臨打報名。`);
+      } else {
+        lines.push("目前已額滿，可候補。");
+      }
+      return lines.join("\n");
+    }
+    async function copyTextToClipboard(value) {
+      if (navigator.clipboard && window.isSecureContext) {
+        await navigator.clipboard.writeText(value);
+        return true;
+      }
+      const textarea = document.createElement("textarea");
+      textarea.value = value;
+      textarea.setAttribute("readonly", "");
+      textarea.style.position = "fixed";
+      textarea.style.top = "-9999px";
+      document.body.appendChild(textarea);
+      textarea.focus();
+      textarea.select();
+      const ok = document.execCommand("copy");
+      textarea.remove();
+      if (!ok) throw new Error("此瀏覽器不允許自動複製");
+      return true;
+    }
+    async function copyLineRoster() {
+      if (!state.selectedEventId) return toast("請先選擇聚會");
+      showActionModal("", "整理中", "正在整理 LINE 名單。");
+      try {
+        const confirmedData = await apiFetch("v5RosterSection", { eventId: state.selectedEventId, section: "confirmed" }, { force: true });
+        if (!confirmedData.ok) throw new Error(confirmedData.error || "正式名單讀取失敗");
+        const waitingData = await apiFetch("v5RosterSection", { eventId: state.selectedEventId, section: "waiting" }, { force: true });
+        if (!waitingData.ok) throw new Error(waitingData.error || "候補名單讀取失敗");
+        const message = buildLineRosterText(selectedEventForMessage(), confirmedData.payload || {}, waitingData.payload || {});
+        try {
+          await copyTextToClipboard(message);
+          showActionModal("done", "已複製", "可直接貼到 LINE 群組。");
+        } catch (copyErr) {
+          showManualCopyModal(message);
+        }
+      } catch (err) {
+        showActionModal("error", "複製失敗", err.message || "請稍後再試。");
       }
     }
     async function loadRosterSection(section, options = {}) {
@@ -2620,6 +2728,7 @@
       }
     });
     document.getElementById("loadRoster").addEventListener("click", loadRoster);
+    document.getElementById("copyRoster").addEventListener("click", copyLineRoster);
     document.getElementById("submitSignup").addEventListener("click", submitSignup);
     document.getElementById("openTempCancel").addEventListener("click", openTempCancelPicker);
     document.getElementById("adminUnlock").addEventListener("click", adminUnlock);
