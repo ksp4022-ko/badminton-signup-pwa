@@ -7,10 +7,10 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-title" content="羽球報名 Alpha">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <title>羽球報名 v5.0.0-alpha.19</title>
+  <title>羽球報名 v5.0.0-alpha.21</title>
   <link rel="manifest" href="./manifest.webmanifest">
-  <link rel="apple-touch-icon" sizes="180x180" href="../icon-180.png?v=5-alpha-19">
-  <link rel="icon" type="image/png" sizes="192x192" href="../icon-192.png?v=5-alpha-19">
+  <link rel="apple-touch-icon" sizes="180x180" href="../icon-180.png?v=5-alpha-21">
+  <link rel="icon" type="image/png" sizes="192x192" href="../icon-192.png?v=5-alpha-21">
   <style>
     :root {
       --ink: #0f172a;
@@ -258,6 +258,9 @@
       padding: 12px 14px;
       resize: vertical;
     }
+    .admin-form label.priority-field input {
+      color: #b91c1c;
+    }
     .admin-button {
       min-height: 60px;
       border: 0;
@@ -265,6 +268,10 @@
       font-size: 22px;
       font-weight: 1000;
       box-shadow: 0 14px 28px rgba(15,23,42,.12);
+    }
+    .admin-button:disabled {
+      opacity: .48;
+      box-shadow: none;
     }
     .admin-area { display: none; gap: 12px; margin-top: 14px; }
     .admin-area.show { display: grid; }
@@ -326,8 +333,18 @@
       background: rgba(255,255,255,.9);
       border: 1px solid rgba(148,163,184,.18);
     }
+    .payment-row.dirty {
+      border-color: rgba(217,119,6,.38);
+      background: #fff7ed;
+    }
     .payment-name { color: var(--ink); font-size: 18px; line-height: 1.15; font-weight: 1000; }
     .payment-meta { margin-top: 3px; color: #64748b; font-size: 12px; line-height: 1.2; font-weight: 900; }
+    .payment-dirty {
+      display: inline-block;
+      margin-left: 5px;
+      color: #c2410c;
+      font-weight: 1000;
+    }
     .payment-amount {
       width: 100%;
       min-width: 0;
@@ -351,6 +368,12 @@
       font-size: 14px;
       font-weight: 900;
       text-align: center;
+    }
+    .payment-confirm-note {
+      color: #9a3412;
+      font-size: 13px;
+      line-height: 1.35;
+      font-weight: 950;
     }
     .profit-detail { display: grid; gap: 4px; color: #475569; font-size: 13px; line-height: 1.35; font-weight: 900; }
     .profit-warning { padding: 8px 10px; border-radius: 12px; background: #fff7ed; color: #9a3412; }
@@ -706,9 +729,9 @@
 <body>
   <div class="app">
     <header class="hero">
-      <img src="../icon-180.png?v=5-alpha-19" alt="羽球報名">
+      <img src="../icon-180.png?v=5-alpha-21" alt="羽球報名">
       <h1>羽球報名系統</h1>
-      <div class="version">v5 alpha.19</div>
+      <div class="version">v5 alpha.21</div>
     </header>
 
     <section class="panel">
@@ -909,16 +932,16 @@
               <div class="admin-mini" id="usageEventSummary">目前聚會：尚未讀取</div>
               <div class="admin-mini" id="usageSourceSummary">資料來源：尚未讀取</div>
               <div class="admin-grid">
+                <label class="priority-field">實際用球數<input id="usageBallUsed" type="number" inputmode="numeric" min="0"></label>
+                <label class="priority-field">本場雜資<input id="usageMiscFee" type="number" inputmode="numeric" min="0"></label>
                 <label class="full">歸屬賽季<select id="usageSeasonId"></select></label>
                 <label>實際場地數<input id="usageCourtCount" type="number" inputmode="decimal" min="0" step="0.5"></label>
                 <label>實際時數<input id="usageHours" type="number" inputmode="decimal" min="0" step="0.5"></label>
-                <label>實際用球數<input id="usageBallUsed" type="number" inputmode="numeric" min="0"></label>
-                <label>冷氣時數<input id="usageAcHours" type="number" inputmode="decimal" min="0" step="0.5"></label>
-                <label>本場雜資<input id="usageMiscFee" type="number" inputmode="numeric" min="0"></label>
                 <label>場地單價<input id="usageCourtUnit" type="number" inputmode="numeric" min="0"></label>
                 <label>場地折扣<input id="usageCourtDiscount" type="number" inputmode="decimal" min="0" step="0.01"></label>
                 <label>球單價<input id="usageBallUnit" type="number" inputmode="numeric" min="0"></label>
                 <label>冷氣單價<input id="usageAcUnit" type="number" inputmode="numeric" min="0"></label>
+                <label>冷氣時數<input id="usageAcHours" type="number" inputmode="decimal" min="0" step="0.5"></label>
                 <label class="full">備註<textarea id="usageNote" placeholder="可空白"></textarea></label>
               </div>
               <div class="admin-kpis" id="usagePreview">
@@ -960,10 +983,18 @@
                 <button class="admin-button btn-info full" id="loadTempPayments" type="button">讀取臨打收費</button>
               </div>
               <div class="payment-list" id="tempPaymentList"><div class="payment-empty">尚未讀取臨打收費。</div></div>
+              <div class="payment-confirm-note" id="tempPaymentDirtyNote"></div>
+              <div class="admin-actions">
+                <button class="admin-button btn-primary full" id="confirmTempPayments" type="button" disabled>確認臨打收費</button>
+              </div>
             </div>
             <div class="admin-card">
               <h3>季打收費</h3>
-              <div class="admin-mini" id="seasonPaymentInfo">依目前聚會的歸屬賽季與季打群組讀取。</div>
+              <div class="admin-grid">
+                <label class="full">收費賽季<select id="seasonPaymentSeasonId"></select></label>
+                <label class="full">季打群組<select id="seasonPaymentGroupId"></select></label>
+              </div>
+              <div class="admin-mini" id="seasonPaymentInfo">請選擇賽季與季打群組後讀取。</div>
               <div class="admin-kpis" id="seasonPaymentSummary">
                 <div class="admin-kpi income"><span class="num">0</span><span class="label">已收</span></div>
                 <div class="admin-kpi"><span class="num">0</span><span class="label">未收</span></div>
@@ -972,6 +1003,10 @@
                 <button class="admin-button btn-info full" id="loadSeasonPayments" type="button">讀取季打收費</button>
               </div>
               <div class="payment-list" id="seasonPaymentList"><div class="payment-empty">尚未讀取季打收費。</div></div>
+              <div class="payment-confirm-note" id="seasonPaymentDirtyNote"></div>
+              <div class="admin-actions">
+                <button class="admin-button btn-primary full" id="confirmSeasonPayments" type="button" disabled>確認季打收費</button>
+              </div>
             </div>
           </div>
         </details>
@@ -1045,11 +1080,13 @@
       seasonSettings: [],
       adminEventData: null,
       tempPayments: [],
-      seasonPayments: []
+      seasonPayments: [],
+      seasonPaymentSeasonId: "",
+      seasonPaymentGroupId: ""
     };
 
     function cacheKey(api, params) {
-      return "v5-alpha.19:" + api + ":" + JSON.stringify(params || {});
+      return "v5-alpha.21:" + api + ":" + JSON.stringify(params || {});
     }
 
     function readCache(api, params) {
@@ -1799,9 +1836,16 @@
       setSelectOptions("setGroupId", state.adminGroups, "groupId", (group) => text(group.groupName, group.groupId), "請選擇季打群組");
       setSelectOptions("setSeasonId", state.adminSeasons, "seasonId", (season) => text(season.seasonName, season.seasonId), "請選擇歸屬賽季");
       setSelectOptions("usageSeasonId", state.adminSeasons, "seasonId", (season) => text(season.seasonName, season.seasonId), "請選擇歸屬賽季");
+      setSelectOptions("seasonPaymentSeasonId", state.adminSeasons, "seasonId", (season) => text(season.seasonName, season.seasonId), "請選擇收費賽季");
+      setSelectOptions("seasonPaymentGroupId", state.adminGroups, "groupId", (group) => text(group.groupName, group.groupId), "請選擇季打群組");
       setSelectOptions("editEventId", state.adminEvents, "eventId", eventLabel, "請選擇聚會");
       if (state.selectedEventId) {
         setValue("editEventId", state.selectedEventId);
+      }
+      const selectedEvent = state.selectedEvent || state.adminEvents.find((event) => event.eventId === state.selectedEventId) || null;
+      if (selectedEvent) {
+        if (!value("seasonPaymentSeasonId") && selectedEvent.seasonId) setValue("seasonPaymentSeasonId", selectedEvent.seasonId);
+        if (!value("seasonPaymentGroupId") && selectedEvent.groupId) setValue("seasonPaymentGroupId", selectedEvent.groupId);
       }
       const today = new Date();
       if (!value("newEventDate")) {
@@ -2154,6 +2198,35 @@
         <div class="admin-kpi"><span class="num">${Number(unpaid || 0)}</span><span class="label">未收</span></div>
       `;
     }
+    function paymentStatusValue(value) {
+      return value === "paid" ? "paid" : "cancelled";
+    }
+    function paymentAmountValue(row, isSeason) {
+      return isSeason
+        ? Number(row.payableAmount || row.seasonFee || row.amount || 0)
+        : Number(row.amount || row.defaultAmount || 0);
+    }
+    function preparePaymentRows(type, rows) {
+      const isSeason = type === "season";
+      (rows || []).forEach((row) => {
+        row._savedPaymentStatus = paymentStatusValue(row.paymentStatus);
+        row._savedAmount = paymentAmountValue(row, isSeason);
+        row._dirty = false;
+      });
+    }
+    function setPaymentDirtyState(type) {
+      const rows = type === "season" ? state.seasonPayments : state.tempPayments;
+      const dirtyCount = (rows || []).filter((row) => row._dirty).length;
+      const button = document.getElementById(type === "season" ? "confirmSeasonPayments" : "confirmTempPayments");
+      const note = document.getElementById(type === "season" ? "seasonPaymentDirtyNote" : "tempPaymentDirtyNote");
+      if (button) {
+        button.disabled = dirtyCount === 0;
+        button.textContent = dirtyCount > 0
+          ? `${type === "season" ? "確認季打收費" : "確認臨打收費"}（${dirtyCount}筆）`
+          : `${type === "season" ? "確認季打收費" : "確認臨打收費"}`;
+      }
+      if (note) note.textContent = dirtyCount > 0 ? `有 ${dirtyCount} 筆收費變更尚未確認。` : "";
+    }
     function renderPaymentRows(type, rows) {
       rows = rows || [];
       const isSeason = type === "season";
@@ -2162,21 +2235,20 @@
       if (!list) return;
       if (!rows.length) {
         list.innerHTML = `<div class="payment-empty">${isSeason ? "目前沒有季打收費資料。" : "本場目前沒有臨打收費資料。"}</div>`;
+        setPaymentDirtyState(type);
         return;
       }
       list.innerHTML = rows.map((row, index) => {
-        const checked = row.paymentStatus === "paid";
-        const amount = isSeason
-          ? Number(row.payableAmount || row.seasonFee || row.amount || 0)
-          : Number(row.amount || row.defaultAmount || 0);
+        const checked = paymentStatusValue(row.paymentStatus) === "paid";
+        const amount = paymentAmountValue(row, isSeason);
         const meta = isSeason
           ? `季打｜${checked ? "已收" : "未收"}`
           : `臨打｜${checked ? "已收" : "未收"}`;
         return `
-          <div class="payment-row">
+          <div class="payment-row${row._dirty ? " dirty" : ""}" data-payment-type="${type}" data-payment-index="${index}">
             <div>
               <div class="payment-name">${escapeHtml(row.name || row.memberName || "")}</div>
-              <div class="payment-meta">${escapeHtml(meta)}</div>
+              <div class="payment-meta">${escapeHtml(meta)}<span class="payment-dirty"${row._dirty ? "" : " hidden"}>待確認</span></div>
             </div>
             <input class="payment-amount" data-payment-type="${type}" data-payment-index="${index}" type="number" inputmode="numeric" min="0" value="${amount}">
             <label class="payment-switch">
@@ -2186,10 +2258,12 @@
           </div>
         `;
       }).join("");
+      setPaymentDirtyState(type);
     }
     function renderTempPaymentData(data) {
       data = data || {};
       const rows = data.temp || [];
+      preparePaymentRows("temp", rows);
       state.tempPayments = rows;
       const summary = data.summary || {};
       setPaymentSummary("tempPaymentSummary", summary.tempPaidCount || rows.filter((p) => p.paymentStatus === "paid").length, summary.tempUnpaidCount || rows.filter((p) => p.paymentStatus !== "paid").length);
@@ -2198,14 +2272,29 @@
     function renderSeasonPaymentData(data) {
       data = data || {};
       const rows = data.members || data.rows || [];
+      preparePaymentRows("season", rows);
       state.seasonPayments = rows;
+      state.seasonPaymentSeasonId = data.seasonId || value("seasonPaymentSeasonId");
+      state.seasonPaymentGroupId = data.groupId || value("seasonPaymentGroupId");
       const summary = data.summary || {};
       setPaymentSummary("seasonPaymentSummary", summary.paidCount || rows.filter((p) => p.paymentStatus === "paid").length, summary.unpaidCount || rows.filter((p) => p.paymentStatus !== "paid").length);
       const info = document.getElementById("seasonPaymentInfo");
       if (info) {
-        info.textContent = `季費 ${money(data.baseSeasonFee || data.seasonFee)} 元｜抵扣 ${money(summary.creditTotal || data.creditTotal)} 元｜應收 ${money(summary.payableTotal || data.payableTotal)} 元`;
+        const title = [data.seasonName || data.seasonId, data.groupName || data.groupId].filter(Boolean).join("｜");
+        info.textContent = `${title}｜季費 ${money(data.baseSeasonFee || data.seasonFee)} 元｜抵扣 ${money(summary.creditTotal || data.creditTotal)} 元｜應收 ${money(summary.payableTotal || data.payableTotal)} 元`;
       }
       renderPaymentRows("season", rows);
+    }
+    function resetSeasonPaymentView() {
+      state.seasonPayments = [];
+      state.seasonPaymentSeasonId = value("seasonPaymentSeasonId");
+      state.seasonPaymentGroupId = value("seasonPaymentGroupId");
+      setPaymentDirtyState("season");
+      setPaymentSummary("seasonPaymentSummary", 0, 0);
+      const info = document.getElementById("seasonPaymentInfo");
+      if (info) info.textContent = "請選擇賽季與季打群組後讀取。";
+      const list = document.getElementById("seasonPaymentList");
+      if (list) list.innerHTML = `<div class="payment-empty">尚未讀取季打收費。</div>`;
     }
     function renderDailyProfit(data) {
       data = data || {};
@@ -2240,11 +2329,12 @@
     }
     async function loadSeasonPayments() {
       if (!state.adminPassword) return toast("請先開啟管理員功能");
-      const eventId = currentAdminEventId();
-      if (!eventId) return toast("請先選擇聚會");
+      const seasonId = value("seasonPaymentSeasonId");
+      const groupId = value("seasonPaymentGroupId");
+      if (!seasonId || !groupId) return toast("請先選擇賽季與季打群組");
       showActionModal("", "讀取中", "正在讀取季打收費。");
       try {
-        const data = await apiFetch("v5SeasonPaymentData", { password: state.adminPassword, eventId }, { force: true, noCache: true });
+        const data = await apiFetch("v5SeasonPaymentData", { password: state.adminPassword, seasonId, groupId }, { force: true, noCache: true });
         if (!data.ok) throw new Error(data.error || "讀取失敗");
         renderSeasonPaymentData(data.payload);
         closeActionModal();
@@ -2266,34 +2356,87 @@
         showActionModal("error", "計算失敗", err.message || "請稍後再試");
       }
     }
-    async function updatePaymentFromToggle(input) {
-      const type = input.dataset.paymentType;
-      const index = Number(input.dataset.paymentIndex);
+    function markPaymentChange(target) {
+      const type = target.dataset.paymentType;
+      const index = Number(target.dataset.paymentIndex);
       const rows = type === "season" ? state.seasonPayments : state.tempPayments;
       const row = rows[index];
       if (!row) return;
       const amountInput = document.querySelector(`.payment-amount[data-payment-type="${type}"][data-payment-index="${index}"]`);
+      const toggle = document.querySelector(`.payment-toggle-input[data-payment-type="${type}"][data-payment-index="${index}"]`);
       const amount = Number(amountInput && amountInput.value) || 0;
-      const status = input.checked ? "paid" : "cancelled";
+      const status = toggle && toggle.checked ? "paid" : "cancelled";
+      row.paymentStatus = status;
+      row.amount = amount;
+      if (type === "season") {
+        row.payableAmount = amount;
+        row.finalPayableAmount = amount;
+      }
+      row._dirty = status !== row._savedPaymentStatus || Number(amount) !== Number(row._savedAmount || 0);
+      const paymentRow = document.querySelector(`.payment-row[data-payment-type="${type}"][data-payment-index="${index}"]`);
+      if (paymentRow) paymentRow.classList.toggle("dirty", !!row._dirty);
+      const dirtyLabel = paymentRow && paymentRow.querySelector(".payment-dirty");
+      if (dirtyLabel) dirtyLabel.hidden = !row._dirty;
+      const switchLabel = toggle && toggle.closest(".payment-switch") && toggle.closest(".payment-switch").querySelector("span");
+      if (switchLabel) switchLabel.textContent = status === "paid" ? "已收" : "未收";
+      const meta = paymentRow && paymentRow.querySelector(".payment-meta");
+      if (meta) {
+        const label = type === "season" ? "季打" : "臨打";
+        meta.childNodes[0].nodeValue = `${label}｜${status === "paid" ? "已收" : "未收"}`;
+      }
+      setPaymentDirtyState(type);
+    }
+    async function refreshDailyProfitQuiet() {
       const eventId = currentAdminEventId();
-      input.disabled = true;
-      showActionModal("", "更新中", "正在更新收費狀態。");
+      if (!eventId) return;
       try {
-        const api = type === "season" ? "v5UpdateSeasonPaymentStatus" : "v5UpdatePaymentStatus";
-        const params = type === "season"
-          ? { password: state.adminPassword, eventId, memberName: row.name || row.memberName, amount, paymentStatus: status }
-          : { password: state.adminPassword, eventId, signupId: row.signupId, chargeType: "temp", amount, paymentStatus: status };
-        const data = await apiWrite(api, params);
-        if (!data.ok) throw new Error(data.error || "更新失敗");
-        if (type === "season") renderSeasonPaymentData(data.payload.seasonPaymentData || data.payload);
-        else renderTempPaymentData(data.payload.paymentData || data.payload);
-        await loadDailyProfit();
-        showActionModal("done", "完成", input.checked ? "已標記為已收。" : "已改為未收。");
+        const data = await apiFetch("v5DailyProfitLoss", { password: state.adminPassword, eventId }, { force: true, noCache: true });
+        if (data.ok) renderDailyProfit(data.payload);
+      } catch (err) {}
+    }
+    function collectDirtyPayments(type) {
+      const rows = type === "season" ? state.seasonPayments : state.tempPayments;
+      return (rows || []).filter((row) => row._dirty).map((row) => ({
+        signupId: row.signupId || "",
+        memberName: row.name || row.memberName || "",
+        chargeType: row.chargeType || "temp",
+        amount: Number(row.amount != null ? row.amount : (row.payableAmount != null ? row.payableAmount : (row.finalPayableAmount || 0))),
+        paymentStatus: paymentStatusValue(row.paymentStatus)
+      }));
+    }
+    async function confirmTempPayments() {
+      if (!state.adminPassword) return toast("請先開啟管理員功能");
+      const eventId = currentAdminEventId();
+      if (!eventId) return toast("請先選擇聚會");
+      const items = collectDirtyPayments("temp");
+      if (!items.length) return toast("沒有待確認的臨打收費");
+      showActionModal("", "儲存中", "正在確認臨打收費。");
+      try {
+        const data = await apiWrite("v5BatchUpdatePaymentStatus", { password: state.adminPassword, eventId, items: JSON.stringify(items) });
+        if (!data.ok) throw new Error(data.error || "儲存失敗");
+        renderTempPaymentData(data.payload.paymentData || data.payload);
+        await refreshDailyProfitQuiet();
+        showActionModal("done", "完成", `已確認臨打收費 ${Number(data.payload.updatedCount || items.length)} 筆。`);
       } catch (err) {
-        input.checked = !input.checked;
-        showActionModal("error", "更新失敗", err.message || "請稍後再試");
-      } finally {
-        input.disabled = false;
+        showActionModal("error", "儲存失敗", err.message || "請稍後再試");
+      }
+    }
+    async function confirmSeasonPayments() {
+      if (!state.adminPassword) return toast("請先開啟管理員功能");
+      const seasonId = state.seasonPaymentSeasonId || value("seasonPaymentSeasonId");
+      const groupId = state.seasonPaymentGroupId || value("seasonPaymentGroupId");
+      if (!seasonId || !groupId) return toast("請先選擇賽季與季打群組");
+      const items = collectDirtyPayments("season");
+      if (!items.length) return toast("沒有待確認的季打收費");
+      showActionModal("", "儲存中", "正在確認季打收費。");
+      try {
+        const data = await apiWrite("v5BatchUpdateSeasonPaymentStatus", { password: state.adminPassword, seasonId, groupId, items: JSON.stringify(items) });
+        if (!data.ok) throw new Error(data.error || "儲存失敗");
+        renderSeasonPaymentData(data.payload.seasonPaymentData || data.payload);
+        await refreshDailyProfitQuiet();
+        showActionModal("done", "完成", `已確認季打收費 ${Number(data.payload.updatedCount || items.length)} 筆。`);
+      } catch (err) {
+        showActionModal("error", "儲存失敗", err.message || "請稍後再試");
       }
     }
     function openPicker() { document.getElementById("eventSheet").classList.add("show"); renderOptions(); }
@@ -2345,6 +2488,10 @@
     document.getElementById("loadDailyProfit").addEventListener("click", loadDailyProfit);
     document.getElementById("loadTempPayments").addEventListener("click", loadTempPayments);
     document.getElementById("loadSeasonPayments").addEventListener("click", loadSeasonPayments);
+    document.getElementById("confirmTempPayments").addEventListener("click", confirmTempPayments);
+    document.getElementById("confirmSeasonPayments").addEventListener("click", confirmSeasonPayments);
+    document.getElementById("seasonPaymentSeasonId").addEventListener("change", resetSeasonPaymentView);
+    document.getElementById("seasonPaymentGroupId").addEventListener("change", resetSeasonPaymentView);
     [
       "setSeasonMemberCount",
       "setRoundingUnit",
@@ -2397,7 +2544,11 @@
     });
     document.addEventListener("change", (event) => {
       const paymentToggle = event.target.closest(".payment-toggle-input");
-      if (paymentToggle) updatePaymentFromToggle(paymentToggle);
+      if (paymentToggle) markPaymentChange(paymentToggle);
+    });
+    document.addEventListener("input", (event) => {
+      const paymentAmount = event.target.closest(".payment-amount");
+      if (paymentAmount) markPaymentChange(paymentAmount);
     });
     document.querySelectorAll("details.roster").forEach((detail) => {
       detail.addEventListener("toggle", () => {
