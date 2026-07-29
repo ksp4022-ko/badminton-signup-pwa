@@ -7,10 +7,10 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-title" content="羽球報名 Alpha">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <title>羽球報名 v5.0.0-alpha.21</title>
+  <title>羽球報名 v5.0.0-alpha.22</title>
   <link rel="manifest" href="./manifest.webmanifest">
-  <link rel="apple-touch-icon" sizes="180x180" href="../icon-180.png?v=5-alpha-21">
-  <link rel="icon" type="image/png" sizes="192x192" href="../icon-192.png?v=5-alpha-21">
+  <link rel="apple-touch-icon" sizes="180x180" href="../icon-180.png?v=5-alpha-22">
+  <link rel="icon" type="image/png" sizes="192x192" href="../icon-192.png?v=5-alpha-22">
   <style>
     :root {
       --ink: #0f172a;
@@ -729,9 +729,9 @@
 <body>
   <div class="app">
     <header class="hero">
-      <img src="../icon-180.png?v=5-alpha-21" alt="羽球報名">
+      <img src="../icon-180.png?v=5-alpha-22" alt="羽球報名">
       <h1>羽球報名系統</h1>
-      <div class="version">v5 alpha.21</div>
+      <div class="version">v5 alpha.22</div>
     </header>
 
     <section class="panel">
@@ -1060,7 +1060,7 @@
 
   <script>
     const API_BASE = "https://script.google.com/macros/s/AKfycbw1yQZtGYP1YTAMvvrEZPiP8m6_gCb_-lnCKeKHRGOJ1zuFGK0GHxHouJyoqeci-TLnqQ/exec";
-    const SITE = "kangxuan";
+    const SITE = new URLSearchParams(location.search).get("site") || "kangxuan";
     const CACHE_TTL_MS = 30000;
     const JSONP_TIMEOUT_MS = 25000;
     const RETRYABLE_APIS = { v5Init: true, v5EventBasic: true, v5EventRoster: true, v5RosterSection: true, v5AdminInit: true, v5AdminEventData: true, v5LoadSeasonSetting: true, v5PaymentData: true, v5SeasonPaymentData: true, v5DailyProfitLoss: true };
@@ -1086,7 +1086,7 @@
     };
 
     function cacheKey(api, params) {
-      return "v5-alpha.21:" + api + ":" + JSON.stringify(params || {});
+      return "v5-alpha.22:" + SITE + ":" + api + ":" + JSON.stringify(params || {});
     }
 
     function readCache(api, params) {
