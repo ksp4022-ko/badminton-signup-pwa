@@ -7,10 +7,10 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-title" content="羽球報名 Alpha">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <title>羽球報名 v5.0.0-alpha.22</title>
+  <title>羽球報名 v5.0.0-alpha.23</title>
   <link rel="manifest" href="./manifest.webmanifest">
-  <link rel="apple-touch-icon" sizes="180x180" href="../icon-180.png?v=5-alpha-22">
-  <link rel="icon" type="image/png" sizes="192x192" href="../icon-192.png?v=5-alpha-22">
+  <link rel="apple-touch-icon" sizes="180x180" href="../icon-180.png?v=5-alpha-23">
+  <link rel="icon" type="image/png" sizes="192x192" href="../icon-192.png?v=5-alpha-23">
   <style>
     :root {
       --ink: #0f172a;
@@ -729,9 +729,9 @@
 <body>
   <div class="app">
     <header class="hero">
-      <img src="../icon-180.png?v=5-alpha-22" alt="羽球報名">
+      <img src="../icon-180.png?v=5-alpha-23" alt="羽球報名">
       <h1>羽球報名系統</h1>
-      <div class="version">v5 alpha.22</div>
+      <div class="version">v5 alpha.23</div>
     </header>
 
     <section class="panel">
@@ -879,6 +879,19 @@
               </div>
               <div class="admin-mini">開立新聚會會自動帶入這裡的場地數、時數、冷氣時數與支出基準。</div>
             </div>
+            <div class="admin-card">
+              <h3>開新賽季 / 產生收費單</h3>
+              <div class="admin-grid">
+                <label class="full">退費來源賽季<select id="seasonWorkflowSourceSeasonId"></select></label>
+                <label class="full">退費單次金額<input id="seasonWorkflowRefundUnit" type="number" inputmode="decimal" min="0" step="0.1" placeholder="空白則依來源賽季自動計算"></label>
+              </div>
+              <div class="admin-mini">會依目前期初設定產生 SeasonPaymentLog；若有選退費來源賽季，會先產生下季抵扣。</div>
+              <div class="admin-actions">
+                <button class="admin-button btn-info" id="generateSeasonPaymentsBtn" type="button">產生收費單</button>
+                <button class="admin-button btn-primary" id="createSeasonWorkflowBtn" type="button">建立新賽季</button>
+              </div>
+              <div class="profit-detail" id="seasonWorkflowResult">尚未產生收費單。</div>
+            </div>
           </div>
         </details>
 
@@ -1008,6 +1021,25 @@
                 <button class="admin-button btn-primary full" id="confirmSeasonPayments" type="button" disabled>確認季打收費</button>
               </div>
             </div>
+            <div class="admin-card">
+              <h3>季末損益</h3>
+              <div class="admin-grid">
+                <label class="full">結算賽季<select id="profitSeasonId"></select></label>
+                <label class="full">季打群組<select id="profitGroupId"></select></label>
+                <label class="full">備註<textarea id="profitNote" placeholder="可空白"></textarea></label>
+              </div>
+              <div class="admin-kpis" id="seasonProfitSummary">
+                <div class="admin-kpi income"><span class="num">0</span><span class="label">季打收入</span></div>
+                <div class="admin-kpi income"><span class="num">0</span><span class="label">臨打收入</span></div>
+                <div class="admin-kpi expense"><span class="num">0</span><span class="label">實際支出</span></div>
+                <div class="admin-kpi"><span class="num">0</span><span class="label">盈虧</span></div>
+              </div>
+              <div class="profit-detail" id="seasonProfitDetail">請選擇賽季與群組後計算。</div>
+              <div class="admin-actions">
+                <button class="admin-button btn-info" id="loadSeasonProfit" type="button">計算損益</button>
+                <button class="admin-button btn-primary" id="saveSeasonProfit" type="button">儲存損益</button>
+              </div>
+            </div>
           </div>
         </details>
         </div>
@@ -1063,7 +1095,7 @@
     const SITE = new URLSearchParams(location.search).get("site") || "kangxuan";
     const CACHE_TTL_MS = 30000;
     const JSONP_TIMEOUT_MS = 25000;
-    const RETRYABLE_APIS = { v5Init: true, v5EventBasic: true, v5EventRoster: true, v5RosterSection: true, v5AdminInit: true, v5AdminEventData: true, v5LoadSeasonSetting: true, v5PaymentData: true, v5SeasonPaymentData: true, v5DailyProfitLoss: true };
+    const RETRYABLE_APIS = { v5Init: true, v5EventBasic: true, v5EventRoster: true, v5RosterSection: true, v5AdminInit: true, v5AdminEventData: true, v5LoadSeasonSetting: true, v5PaymentData: true, v5SeasonPaymentData: true, v5DailyProfitLoss: true, v5SeasonProfitLoss: true };
     const state = {
       events: [],
       selectedEventId: "",
@@ -1086,7 +1118,7 @@
     };
 
     function cacheKey(api, params) {
-      return "v5-alpha.22:" + SITE + ":" + api + ":" + JSON.stringify(params || {});
+      return "v5-alpha.23:" + SITE + ":" + api + ":" + JSON.stringify(params || {});
     }
 
     function readCache(api, params) {
@@ -1835,9 +1867,12 @@
       setSelectOptions("newSeasonId", state.adminSeasons, "seasonId", (season) => text(season.seasonName, season.seasonId), "請選擇歸屬賽季");
       setSelectOptions("setGroupId", state.adminGroups, "groupId", (group) => text(group.groupName, group.groupId), "請選擇季打群組");
       setSelectOptions("setSeasonId", state.adminSeasons, "seasonId", (season) => text(season.seasonName, season.seasonId), "請選擇歸屬賽季");
+      setSelectOptions("seasonWorkflowSourceSeasonId", state.adminSeasons, "seasonId", (season) => text(season.seasonName, season.seasonId), "不使用退費抵扣");
       setSelectOptions("usageSeasonId", state.adminSeasons, "seasonId", (season) => text(season.seasonName, season.seasonId), "請選擇歸屬賽季");
       setSelectOptions("seasonPaymentSeasonId", state.adminSeasons, "seasonId", (season) => text(season.seasonName, season.seasonId), "請選擇收費賽季");
       setSelectOptions("seasonPaymentGroupId", state.adminGroups, "groupId", (group) => text(group.groupName, group.groupId), "請選擇季打群組");
+      setSelectOptions("profitSeasonId", state.adminSeasons, "seasonId", (season) => text(season.seasonName, season.seasonId), "請選擇結算賽季");
+      setSelectOptions("profitGroupId", state.adminGroups, "groupId", (group) => text(group.groupName, group.groupId), "請選擇季打群組");
       setSelectOptions("editEventId", state.adminEvents, "eventId", eventLabel, "請選擇聚會");
       if (state.selectedEventId) {
         setValue("editEventId", state.selectedEventId);
@@ -1846,6 +1881,8 @@
       if (selectedEvent) {
         if (!value("seasonPaymentSeasonId") && selectedEvent.seasonId) setValue("seasonPaymentSeasonId", selectedEvent.seasonId);
         if (!value("seasonPaymentGroupId") && selectedEvent.groupId) setValue("seasonPaymentGroupId", selectedEvent.groupId);
+        if (!value("profitSeasonId") && selectedEvent.seasonId) setValue("profitSeasonId", selectedEvent.seasonId);
+        if (!value("profitGroupId") && selectedEvent.groupId) setValue("profitGroupId", selectedEvent.groupId);
       }
       const today = new Date();
       if (!value("newEventDate")) {
@@ -1964,6 +2001,118 @@
         showActionModal("done", "儲存成功", "期初設定已更新。");
       } catch (err) {
         showActionModal("error", "儲存失敗", err.message || "請稍後再試。");
+      }
+    }
+    function renderSeasonWorkflowResult(result) {
+      result = result || {};
+      const payment = result.paymentResult || result;
+      const data = result.seasonPaymentData || payment.seasonPaymentData || {};
+      const summary = data.summary || {};
+      document.getElementById("seasonWorkflowResult").innerHTML = `
+        <div>${escapeHtml(result.message || payment.message || "已更新季打收費單。")}</div>
+        <div>收費賽季：${escapeHtml(data.seasonName || payment.seasonName || payment.seasonId || value("setSeasonId"))}</div>
+        <div>季打群組：${escapeHtml(data.groupName || payment.groupName || value("setGroupId"))}</div>
+        <div>收費單：${Number(payment.insertedCount || 0)} 新增｜${Number(payment.updatedCount || 0)} 更新｜已收 ${Number(summary.paidCount || 0)} 人</div>
+        <div>抵扣：${money(payment.creditTotal || summary.creditTotal)} 元｜應收：${money(payment.payableTotal || summary.payableTotal)} 元</div>
+      `;
+      if (data.members || data.rows) renderSeasonPaymentData(data);
+    }
+    async function generateSeasonPayments() {
+      if (!state.adminPassword) return toast("請先開啟管理員功能");
+      const seasonId = value("setSeasonId");
+      const groupId = value("setGroupId");
+      if (!seasonId || !groupId) return toast("請先選擇賽季與季打群組");
+      showActionModal("", "產生中", "正在產生季打收費單。");
+      try {
+        const data = await apiWrite("v5GenerateSeasonPaymentList", {
+          password: state.adminPassword,
+          seasonId,
+          groupId,
+          fromSeasonId: value("seasonWorkflowSourceSeasonId"),
+          refundUnit: numberValue("seasonWorkflowRefundUnit", 0)
+        });
+        if (!data.ok) throw new Error(data.error || "產生失敗");
+        renderSeasonWorkflowResult(data.payload);
+        setValue("seasonPaymentSeasonId", seasonId);
+        setValue("seasonPaymentGroupId", groupId);
+        closeActionModal();
+        toast("季打收費單已產生");
+      } catch (err) {
+        showActionModal("error", "產生失敗", err.message || "請稍後再試。");
+      }
+    }
+    async function createSeasonWorkflow() {
+      if (!state.adminPassword) return toast("請先開啟管理員功能");
+      const payload = seasonSettingPayload();
+      if (!payload.seasonId || !payload.groupId) return toast("請先選擇賽季與季打群組");
+      if (!payload.seasonMemberCount) return toast("請輸入季打人數");
+      showActionModal("", "建立中", "正在儲存期初設定並產生收費單。");
+      try {
+        const data = await apiWrite("v5CreateNewSeasonWorkflow", Object.assign({ password: state.adminPassword }, payload, {
+          fromSeasonId: value("seasonWorkflowSourceSeasonId"),
+          refundUnit: numberValue("seasonWorkflowRefundUnit", 0)
+        }));
+        if (!data.ok) throw new Error(data.error || "建立失敗");
+        fillSeasonSetting(data.payload && data.payload.settings);
+        renderSeasonWorkflowResult(data.payload);
+        renderAdminOptions(data.payload && data.payload.admin);
+        setValue("seasonPaymentSeasonId", payload.seasonId);
+        setValue("seasonPaymentGroupId", payload.groupId);
+        showActionModal("done", "建立完成", "期初設定與季打收費單已更新。");
+      } catch (err) {
+        showActionModal("error", "建立失敗", err.message || "請稍後再試。");
+      }
+    }
+    function renderSeasonProfit(data) {
+      data = data || {};
+      const net = Number(data.netProfit || 0);
+      document.getElementById("seasonProfitSummary").innerHTML = `
+        <div class="admin-kpi income"><span class="num">${money(data.seasonPaymentIncome)}</span><span class="label">季打收入</span></div>
+        <div class="admin-kpi income"><span class="num">${money(data.tempPaymentIncome)}</span><span class="label">臨打收入</span></div>
+        <div class="admin-kpi expense"><span class="num">${money(data.totalExpense)}</span><span class="label">實際支出</span></div>
+        <div class="admin-kpi ${net < 0 ? "loss" : "income"}"><span class="num">${net >= 0 ? "+" : ""}${money(net)}</span><span class="label">盈虧</span></div>
+      `;
+      const warnings = (data.warnings || []).map((item) => `<div class="profit-warning">${escapeHtml(item)}</div>`).join("");
+      document.getElementById("seasonProfitDetail").innerHTML = `
+        <div>收入 ${money(data.totalIncome)} 元｜支出 ${money(data.totalExpense)} 元</div>
+        <div>聚會 ${Number(data.eventCount || 0)} 場｜已記錄支出 ${Number(data.usageEventCount || 0)} 場</div>
+        <div>季打已收 ${Number(data.seasonPaidCount || 0)} 人｜臨打已收 ${Number(data.tempPaidCount || 0)} 人</div>
+        ${warnings}
+      `;
+    }
+    async function loadSeasonProfit() {
+      if (!state.adminPassword) return toast("請先開啟管理功能");
+      const seasonId = value("profitSeasonId");
+      const groupId = value("profitGroupId");
+      if (!seasonId || !groupId) return toast("請選擇賽季與季打群組");
+      showActionModal("", "計算中", "正在計算季末損益，請稍候。");
+      try {
+        const data = await apiFetch("v5SeasonProfitLoss", { password: state.adminPassword, seasonId, groupId }, { force: true, noCache: true });
+        if (!data.ok) throw new Error(data.error || "計算失敗");
+        renderSeasonProfit(data.payload);
+        closeActionModal();
+      } catch (err) {
+        showActionModal("error", "計算失敗", err.message || "請稍後再試");
+      }
+    }
+    async function saveSeasonProfit() {
+      if (!state.adminPassword) return toast("請先開啟管理功能");
+      const seasonId = value("profitSeasonId");
+      const groupId = value("profitGroupId");
+      if (!seasonId || !groupId) return toast("請選擇賽季與季打群組");
+      showActionModal("", "儲存中", "正在儲存季末損益，請稍候。");
+      try {
+        const data = await apiWrite("v5SaveSeasonProfitLoss", {
+          password: state.adminPassword,
+          seasonId,
+          groupId,
+          note: value("profitNote")
+        });
+        if (!data.ok) throw new Error(data.error || "儲存失敗");
+        renderSeasonProfit(data.payload && (data.payload.profitLossData || data.payload));
+        showActionModal("done", "儲存完成", "季末損益已儲存。");
+      } catch (err) {
+        showActionModal("error", "儲存失敗", err.message || "請稍後再試");
       }
     }
     async function adminUnlock() {
@@ -2476,6 +2625,8 @@
     document.getElementById("adminUnlock").addEventListener("click", adminUnlock);
     document.getElementById("loadSeasonSettingBtn").addEventListener("click", loadSeasonSettingData);
     document.getElementById("saveSeasonSettingBtn").addEventListener("click", saveSeasonSettingData);
+    document.getElementById("generateSeasonPaymentsBtn").addEventListener("click", generateSeasonPayments);
+    document.getElementById("createSeasonWorkflowBtn").addEventListener("click", createSeasonWorkflow);
     document.getElementById("setSeasonId").addEventListener("change", () => updateSeasonSettingPreview());
     document.getElementById("setGroupId").addEventListener("change", () => updateSeasonSettingPreview());
     document.getElementById("createEventBtn").addEventListener("click", createAdminEvent);
@@ -2486,6 +2637,8 @@
     document.getElementById("saveEventUsage").addEventListener("click", saveAdminEventUsage);
     document.getElementById("closeAdminEvent").addEventListener("click", closeAdminEvent);
     document.getElementById("loadDailyProfit").addEventListener("click", loadDailyProfit);
+    document.getElementById("loadSeasonProfit").addEventListener("click", loadSeasonProfit);
+    document.getElementById("saveSeasonProfit").addEventListener("click", saveSeasonProfit);
     document.getElementById("loadTempPayments").addEventListener("click", loadTempPayments);
     document.getElementById("loadSeasonPayments").addEventListener("click", loadSeasonPayments);
     document.getElementById("confirmTempPayments").addEventListener("click", confirmTempPayments);
