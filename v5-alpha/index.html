@@ -7,10 +7,10 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-title" content="羽球報名 Alpha">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <title>羽球報名 v5.0.0-alpha.16</title>
+  <title>羽球報名 v5.0.0-alpha.17</title>
   <link rel="manifest" href="./manifest.webmanifest">
-  <link rel="apple-touch-icon" sizes="180x180" href="../icon-180.png?v=5-alpha-16">
-  <link rel="icon" type="image/png" sizes="192x192" href="../icon-192.png?v=5-alpha-16">
+  <link rel="apple-touch-icon" sizes="180x180" href="../icon-180.png?v=5-alpha-17">
+  <link rel="icon" type="image/png" sizes="192x192" href="../icon-192.png?v=5-alpha-17">
   <style>
     :root {
       --ink: #0f172a;
@@ -607,9 +607,9 @@
 <body>
   <div class="app">
     <header class="hero">
-      <img src="../icon-180.png?v=5-alpha-16" alt="羽球報名">
+      <img src="../icon-180.png?v=5-alpha-17" alt="羽球報名">
       <h1>羽球報名系統</h1>
-      <div class="version">v5 alpha.16</div>
+      <div class="version">v5 alpha.17</div>
     </header>
 
     <section class="panel">
@@ -801,7 +801,9 @@
               </div>
             </div>
             <div class="admin-card">
-              <h3>單場支出紀錄</h3>
+              <h3>本場實際支出紀錄</h3>
+              <div class="admin-mini" id="usageEventSummary">目前聚會：尚未讀取</div>
+              <div class="admin-mini" id="usageSourceSummary">資料來源：尚未讀取</div>
               <div class="admin-grid">
                 <label class="full">歸屬賽季<select id="usageSeasonId"></select></label>
                 <label>實際場地數<input id="usageCourtCount" type="number" inputmode="decimal" min="0" step="0.5"></label>
@@ -822,6 +824,7 @@
                 <div class="admin-kpi"><span class="num">0</span><span class="label">合計</span></div>
               </div>
               <div class="admin-actions">
+                <button class="admin-button btn-warning" id="resetUsageFromSeason" type="button">依期初設定重新帶入</button>
                 <button class="admin-button btn-primary full" id="saveEventUsage" type="button">儲存本場支出</button>
               </div>
             </div>
@@ -903,11 +906,12 @@
       adminEvents: [],
       adminGroups: [],
       adminSeasons: [],
-      seasonSettings: []
+      seasonSettings: [],
+      adminEventData: null
     };
 
     function cacheKey(api, params) {
-      return "v5-alpha.16:" + api + ":" + JSON.stringify(params || {});
+      return "v5-alpha.17:" + api + ":" + JSON.stringify(params || {});
     }
 
     function readCache(api, params) {
@@ -1856,13 +1860,17 @@
     }
     function fillAdminEventData(payload) {
       payload = payload || {};
+      state.adminEventData = payload;
       const event = payload.event || {};
       const usage = payload.usageData && payload.usageData.usage ? payload.usageData.usage : {};
+      const usageSourceText = usage.usageSourceText || "尚未判斷";
       setValue("editEventId", event.eventId || "");
       setValue("editMaxPeople", event.maxPeople || "");
       setValue("editBallType", event.ballType || "");
       setValue("editTempFee", event.tempFee || "");
       setValue("editEventNote", event.eventNote || "");
+      document.getElementById("usageEventSummary").textContent = "目前聚會：" + [optionTitle(event), formatDate(event.eventDate), weekday(event.eventDate)].filter(Boolean).join("｜");
+      document.getElementById("usageSourceSummary").textContent = "資料來源：" + usageSourceText;
       setValue("usageSeasonId", usage.seasonId || event.seasonId || "");
       setValue("usageCourtCount", usage.actualCourtCount || event.defaultCourtCount || "");
       setValue("usageHours", usage.actualHours || event.defaultHours || "");
@@ -1875,6 +1883,25 @@
       setValue("usageAcUnit", usage.acFeePerHour || "");
       setValue("usageNote", usage.note || "");
       updateAdminUsagePreview(usage);
+    }
+    function resetUsageFromSeasonSetting() {
+      const payload = state.adminEventData || {};
+      const event = payload.event || {};
+      const setting = payload.usageData && payload.usageData.setting ? payload.usageData.setting : null;
+      if (!setting || !setting.seasonId) return toast("此聚會找不到期初設定");
+      setValue("usageSeasonId", setting.seasonId || event.seasonId || "");
+      setValue("usageCourtCount", setting.courtCount || "");
+      setValue("usageHours", setting.hoursPerEvent || "");
+      setValue("usageBallUsed", setting.estimatedShuttlePerEvent || "");
+      setValue("usageAcHours", setting.acHoursPerEvent || 0);
+      setValue("usageMiscFee", 0);
+      setValue("usageCourtUnit", setting.courtFeePerCourtHour || "");
+      setValue("usageCourtDiscount", setting.courtDiscountRate || 1);
+      setValue("usageBallUnit", setting.shuttleUnitCost || "");
+      setValue("usageAcUnit", setting.acFeePerHour || "");
+      document.getElementById("usageSourceSummary").textContent = "資料來源：期初設定（尚未儲存）";
+      updateAdminUsagePreview();
+      toast("已依期初設定帶入，確認後請儲存本場支出");
     }
     async function saveAdminEventSettings() {
       if (!state.adminPassword) return toast("請先開啟管理員功能");
@@ -2018,6 +2045,7 @@
     document.getElementById("editEventId").addEventListener("change", (event) => loadAdminEventData(event.target.value));
     document.getElementById("loadAdminEvent").addEventListener("click", () => loadAdminEventData());
     document.getElementById("saveEventSettings").addEventListener("click", saveAdminEventSettings);
+    document.getElementById("resetUsageFromSeason").addEventListener("click", resetUsageFromSeasonSetting);
     document.getElementById("saveEventUsage").addEventListener("click", saveAdminEventUsage);
     document.getElementById("closeAdminEvent").addEventListener("click", closeAdminEvent);
     [
