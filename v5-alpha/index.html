@@ -7,10 +7,10 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-title" content="羽球報名 Alpha">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <title>羽球報名 v5.0.0-alpha.15</title>
+  <title>羽球報名 v5.0.0-alpha.16</title>
   <link rel="manifest" href="./manifest.webmanifest">
-  <link rel="apple-touch-icon" sizes="180x180" href="../icon-180.png?v=5-alpha-15">
-  <link rel="icon" type="image/png" sizes="192x192" href="../icon-192.png?v=5-alpha-15">
+  <link rel="apple-touch-icon" sizes="180x180" href="../icon-180.png?v=5-alpha-16">
+  <link rel="icon" type="image/png" sizes="192x192" href="../icon-192.png?v=5-alpha-16">
   <style>
     :root {
       --ink: #0f172a;
@@ -607,9 +607,9 @@
 <body>
   <div class="app">
     <header class="hero">
-      <img src="../icon-180.png?v=5-alpha-15" alt="羽球報名">
+      <img src="../icon-180.png?v=5-alpha-16" alt="羽球報名">
       <h1>羽球報名系統</h1>
-      <div class="version">v5 alpha.15</div>
+      <div class="version">v5 alpha.16</div>
     </header>
 
     <section class="panel">
@@ -907,7 +907,7 @@
     };
 
     function cacheKey(api, params) {
-      return "v5-alpha.15:" + api + ":" + JSON.stringify(params || {});
+      return "v5-alpha.16:" + api + ":" + JSON.stringify(params || {});
     }
 
     function readCache(api, params) {
@@ -1726,20 +1726,20 @@
       const courtDiscount = rawDiscount > 10 && rawDiscount <= 100 ? rawDiscount / 100 : (rawDiscount > 1 && rawDiscount <= 10 ? rawDiscount / 10 : rawDiscount);
       const court = Number(input.courtFeePerCourtHour || 0) * courtDiscount * Number(input.courtCount || 0) * Number(input.hoursPerEvent || 0);
       const shuttleUnit = Number(input.shuttlePerTube || 0) > 0 ? Number(input.shuttleTubePrice || 0) / Number(input.shuttlePerTube || 0) : Number(input.shuttleUnitCost || 0);
-      const ball = serverSetting && serverSetting.shuttleFeePerEvent != null
-        ? Number(serverSetting.shuttleFeePerEvent) || 0
-        : shuttleUnit * Number(input.estimatedShuttlePerEvent || 0) * Number(input.courtCount || 0);
+      const computedBall = shuttleUnit * Number(input.estimatedShuttlePerEvent || 0) * Number(input.courtCount || 0);
+      const serverBall = Number(serverSetting && serverSetting.shuttleFeePerEvent);
+      const ball = serverSetting && serverBall > 0 ? serverBall : computedBall;
       const ac = Number(input.acFeePerHour || 0) * Number(input.acHoursPerEvent || 0);
       const eventCount = Number(input.estimatedEventCount || 0);
-      const total = serverSetting && serverSetting.estimatedTotalCost != null
-        ? Number(serverSetting.estimatedTotalCost) || 0
-        : (court + ball + ac) * eventCount + Number(input.miscFeePerSeason || 0);
+      const computedTotal = (court + ball + ac) * eventCount + Number(input.miscFeePerSeason || 0);
+      const serverTotal = Number(serverSetting && serverSetting.estimatedTotalCost);
+      const total = serverSetting && serverTotal > 0 ? serverTotal : computedTotal;
       const members = Number(input.seasonMemberCount || 0);
       const unit = Math.max(1, Number(input.roundingUnit || 10));
       const rawFee = members > 0 ? total / members : 0;
-      const seasonFee = serverSetting && serverSetting.seasonFee != null
-        ? Number(serverSetting.seasonFee) || 0
-        : Math.ceil(rawFee / unit) * unit;
+      const computedSeasonFee = Math.ceil(rawFee / unit) * unit;
+      const serverSeasonFee = Number(serverSetting && serverSetting.seasonFee);
+      const seasonFee = serverSetting && serverSeasonFee > 0 ? serverSeasonFee : computedSeasonFee;
       document.getElementById("seasonSettingPreview").innerHTML = [
         ["場地/場", court],
         ["球/場", ball],
