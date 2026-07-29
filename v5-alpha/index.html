@@ -7,10 +7,10 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-title" content="羽球報名 Alpha">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <title>羽球報名 v5.0.0-alpha.14</title>
+  <title>羽球報名 v5.0.0-alpha.15</title>
   <link rel="manifest" href="./manifest.webmanifest">
-  <link rel="apple-touch-icon" sizes="180x180" href="../icon-180.png?v=5-alpha-14">
-  <link rel="icon" type="image/png" sizes="192x192" href="../icon-192.png?v=5-alpha-14">
+  <link rel="apple-touch-icon" sizes="180x180" href="../icon-180.png?v=5-alpha-15">
+  <link rel="icon" type="image/png" sizes="192x192" href="../icon-192.png?v=5-alpha-15">
   <style>
     :root {
       --ink: #0f172a;
@@ -607,9 +607,9 @@
 <body>
   <div class="app">
     <header class="hero">
-      <img src="../icon-180.png?v=5-alpha-14" alt="羽球報名">
+      <img src="../icon-180.png?v=5-alpha-15" alt="羽球報名">
       <h1>羽球報名系統</h1>
-      <div class="version">v5 alpha.14</div>
+      <div class="version">v5 alpha.15</div>
     </header>
 
     <section class="panel">
@@ -713,6 +713,48 @@
         <button class="admin-button btn-info" id="adminUnlock" type="button">開啟管理功能</button>
       </div>
       <div class="admin-area" id="adminArea">
+        <details class="admin-fold" id="adminSeasonFold">
+          <summary><span>0. 期初設定</span><span>⌄</span></summary>
+          <div class="admin-fold-body admin-form">
+            <div class="admin-card">
+              <h3>賽季與群組</h3>
+              <div class="admin-grid">
+                <label class="full">歸屬賽季<select id="setSeasonId"></select></label>
+                <label class="full">季打群組<select id="setGroupId"></select></label>
+                <label>季打人數<input id="setSeasonMemberCount" type="number" inputmode="numeric" min="0"></label>
+                <label>收費進位<input id="setRoundingUnit" type="number" inputmode="numeric" min="1" value="10"></label>
+              </div>
+              <div class="admin-actions">
+                <button class="admin-button btn-info" id="loadSeasonSettingBtn" type="button">讀取設定</button>
+                <button class="admin-button btn-primary" id="saveSeasonSettingBtn" type="button">儲存期初設定</button>
+              </div>
+            </div>
+            <div class="admin-card">
+              <h3>單場預設支出</h3>
+              <div class="admin-grid">
+                <label>場地單價<input id="setCourtUnit" type="number" inputmode="numeric" min="0"></label>
+                <label>場地折扣<input id="setCourtDiscount" type="number" inputmode="decimal" min="0" step="0.01" value="1"></label>
+                <label>場地數<input id="setCourtCount" type="number" inputmode="decimal" min="0" step="0.5" value="1"></label>
+                <label>時數<input id="setHoursPerEvent" type="number" inputmode="decimal" min="0" step="0.5" value="2"></label>
+                <label>一筒球費<input id="setShuttleTubePrice" type="number" inputmode="numeric" min="0"></label>
+                <label>每筒顆數<input id="setShuttlePerTube" type="number" inputmode="numeric" min="1" value="12"></label>
+                <label>預估用球<input id="setEstimatedShuttle" type="number" inputmode="decimal" min="0" step="0.5"></label>
+                <label>冷氣單價<input id="setAcUnit" type="number" inputmode="numeric" min="0"></label>
+                <label>冷氣時數<input id="setAcHours" type="number" inputmode="decimal" min="0" step="0.5" value="0"></label>
+                <label>本季雜資<input id="setMiscFee" type="number" inputmode="numeric" min="0" value="0"></label>
+                <label>預估場次<input id="setEstimatedEventCount" type="number" inputmode="numeric" min="0"></label>
+              </div>
+              <div class="admin-kpis" id="seasonSettingPreview">
+                <div class="admin-kpi"><span class="num">0</span><span class="label">場地/場</span></div>
+                <div class="admin-kpi"><span class="num">0</span><span class="label">球/場</span></div>
+                <div class="admin-kpi"><span class="num">0</span><span class="label">本季預估</span></div>
+                <div class="admin-kpi"><span class="num">0</span><span class="label">季打費</span></div>
+              </div>
+              <div class="admin-mini">開立新聚會會自動帶入這裡的場地數、時數、冷氣時數與支出基準。</div>
+            </div>
+          </div>
+        </details>
+
         <details class="admin-fold" id="adminCreateFold">
           <summary><span>1. 開立新聚會</span><span>⌄</span></summary>
           <div class="admin-fold-body admin-form">
@@ -727,15 +769,7 @@
                 <label>用球<input id="newBallType" value="MS-101"></label>
                 <label>零打費用<input id="newTempFee" type="number" inputmode="numeric" min="0" value="245"></label>
               </div>
-            </div>
-            <div class="admin-card">
-              <h3>單場支出預設值</h3>
-              <div class="admin-grid">
-                <label>預設場地數<input id="newDefaultCourtCount" type="number" inputmode="decimal" min="0" step="0.5" value="1"></label>
-                <label>預設時數<input id="newDefaultHours" type="number" inputmode="decimal" min="0" step="0.5" value="2"></label>
-                <label>預設冷氣時數<input id="newDefaultAcHours" type="number" inputmode="decimal" min="0" step="0.5" value="0"></label>
-                <div class="full admin-mini">建立後會自動加入季打成員，並建立本場支出草稿，後續收費與損益才有基準。</div>
-              </div>
+              <div class="admin-mini">建立後會自動加入季打成員，並依期初設定建立本場支出草稿。</div>
               <div class="admin-actions">
                 <button class="admin-button btn-primary full" id="createEventBtn" type="button">建立聚會</button>
               </div>
@@ -855,7 +889,7 @@
     const SITE = "kangxuan";
     const CACHE_TTL_MS = 30000;
     const JSONP_TIMEOUT_MS = 25000;
-    const RETRYABLE_APIS = { v5Init: true, v5EventBasic: true, v5EventRoster: true, v5RosterSection: true, v5AdminInit: true, v5AdminEventData: true };
+    const RETRYABLE_APIS = { v5Init: true, v5EventBasic: true, v5EventRoster: true, v5RosterSection: true, v5AdminInit: true, v5AdminEventData: true, v5LoadSeasonSetting: true };
     const state = {
       events: [],
       selectedEventId: "",
@@ -868,11 +902,12 @@
       adminUnlocked: false,
       adminEvents: [],
       adminGroups: [],
-      adminSeasons: []
+      adminSeasons: [],
+      seasonSettings: []
     };
 
     function cacheKey(api, params) {
-      return "v5-alpha.14:" + api + ":" + JSON.stringify(params || {});
+      return "v5-alpha.15:" + api + ":" + JSON.stringify(params || {});
     }
 
     function readCache(api, params) {
@@ -1615,9 +1650,12 @@
       state.adminEvents = payload.events || state.adminEvents || [];
       state.adminGroups = payload.groups || state.adminGroups || [];
       state.adminSeasons = payload.seasons || state.adminSeasons || [];
+      state.seasonSettings = payload.seasonSettings || state.seasonSettings || [];
       const eventLabel = (event) => [optionTitle(event), formatDate(event.eventDate), weekday(event.eventDate)].filter(Boolean).join("｜");
       setSelectOptions("newGroupId", state.adminGroups, "groupId", (group) => text(group.groupName, group.groupId), "請選擇季打群組");
       setSelectOptions("newSeasonId", state.adminSeasons, "seasonId", (season) => text(season.seasonName, season.seasonId), "請選擇歸屬賽季");
+      setSelectOptions("setGroupId", state.adminGroups, "groupId", (group) => text(group.groupName, group.groupId), "請選擇季打群組");
+      setSelectOptions("setSeasonId", state.adminSeasons, "seasonId", (season) => text(season.seasonName, season.seasonId), "請選擇歸屬賽季");
       setSelectOptions("usageSeasonId", state.adminSeasons, "seasonId", (season) => text(season.seasonName, season.seasonId), "請選擇歸屬賽季");
       setSelectOptions("editEventId", state.adminEvents, "eventId", eventLabel, "請選擇聚會");
       if (state.selectedEventId) {
@@ -1626,6 +1664,120 @@
       const today = new Date();
       if (!value("newEventDate")) {
         setValue("newEventDate", `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, "0")}-${String(today.getDate()).padStart(2, "0")}`);
+      }
+      autoSelectSeasonForNewEvent(false);
+      updateSeasonSettingPreview();
+    }
+    function seasonIdFromDate(dateString) {
+      const parts = String(dateString || "").split("-").map(Number);
+      if (parts.length < 2 || !parts[0] || !parts[1]) return "";
+      const quarter = Math.floor((parts[1] - 1) / 3) + 1;
+      return `${parts[0]}_S${String(quarter).padStart(2, "0")}`;
+    }
+    function autoSelectSeasonForNewEvent(force) {
+      const seasonId = seasonIdFromDate(value("newEventDate"));
+      const select = document.getElementById("newSeasonId");
+      if (!seasonId || !select) return;
+      if (!force && select.value) return;
+      const hasOption = Array.from(select.options).some((option) => option.value === seasonId);
+      if (hasOption) select.value = seasonId;
+    }
+    function seasonSettingPayload() {
+      return {
+        seasonId: value("setSeasonId"),
+        groupId: value("setGroupId"),
+        seasonMemberCount: numberValue("setSeasonMemberCount", 0),
+        roundingUnit: numberValue("setRoundingUnit", 10),
+        courtFeePerCourtHour: numberValue("setCourtUnit", 0),
+        courtDiscountRate: numberValue("setCourtDiscount", 1),
+        courtCount: numberValue("setCourtCount", 0),
+        hoursPerEvent: numberValue("setHoursPerEvent", 0),
+        shuttleTubePrice: numberValue("setShuttleTubePrice", 0),
+        shuttlePerTube: numberValue("setShuttlePerTube", 12),
+        estimatedShuttlePerEvent: numberValue("setEstimatedShuttle", 0),
+        acFeePerHour: numberValue("setAcUnit", 0),
+        acHoursPerEvent: numberValue("setAcHours", 0),
+        miscFeePerSeason: numberValue("setMiscFee", 0),
+        estimatedEventCount: numberValue("setEstimatedEventCount", 0)
+      };
+    }
+    function fillSeasonSetting(setting) {
+      setting = setting || {};
+      setValue("setSeasonId", setting.seasonId || value("setSeasonId"));
+      setValue("setGroupId", setting.groupId || value("setGroupId"));
+      setValue("setSeasonMemberCount", setting.seasonMemberCount || "");
+      setValue("setRoundingUnit", setting.roundingUnit || 10);
+      setValue("setCourtUnit", setting.courtFeePerCourtHour || "");
+      setValue("setCourtDiscount", setting.courtDiscountRate || 1);
+      setValue("setCourtCount", setting.courtCount || "");
+      setValue("setHoursPerEvent", setting.hoursPerEvent || "");
+      setValue("setShuttleTubePrice", setting.shuttleTubePrice || "");
+      setValue("setShuttlePerTube", setting.shuttlePerTube || 12);
+      setValue("setEstimatedShuttle", setting.estimatedShuttlePerEvent || "");
+      setValue("setAcUnit", setting.acFeePerHour || "");
+      setValue("setAcHours", setting.acHoursPerEvent || 0);
+      setValue("setMiscFee", setting.miscFeePerSeason || 0);
+      setValue("setEstimatedEventCount", setting.estimatedEventCount || "");
+      updateSeasonSettingPreview(setting);
+    }
+    function updateSeasonSettingPreview(serverSetting) {
+      const input = serverSetting || seasonSettingPayload();
+      const rawDiscount = input.courtDiscountRate == null || input.courtDiscountRate === "" ? 1 : Number(input.courtDiscountRate);
+      const courtDiscount = rawDiscount > 10 && rawDiscount <= 100 ? rawDiscount / 100 : (rawDiscount > 1 && rawDiscount <= 10 ? rawDiscount / 10 : rawDiscount);
+      const court = Number(input.courtFeePerCourtHour || 0) * courtDiscount * Number(input.courtCount || 0) * Number(input.hoursPerEvent || 0);
+      const shuttleUnit = Number(input.shuttlePerTube || 0) > 0 ? Number(input.shuttleTubePrice || 0) / Number(input.shuttlePerTube || 0) : Number(input.shuttleUnitCost || 0);
+      const ball = serverSetting && serverSetting.shuttleFeePerEvent != null
+        ? Number(serverSetting.shuttleFeePerEvent) || 0
+        : shuttleUnit * Number(input.estimatedShuttlePerEvent || 0) * Number(input.courtCount || 0);
+      const ac = Number(input.acFeePerHour || 0) * Number(input.acHoursPerEvent || 0);
+      const eventCount = Number(input.estimatedEventCount || 0);
+      const total = serverSetting && serverSetting.estimatedTotalCost != null
+        ? Number(serverSetting.estimatedTotalCost) || 0
+        : (court + ball + ac) * eventCount + Number(input.miscFeePerSeason || 0);
+      const members = Number(input.seasonMemberCount || 0);
+      const unit = Math.max(1, Number(input.roundingUnit || 10));
+      const rawFee = members > 0 ? total / members : 0;
+      const seasonFee = serverSetting && serverSetting.seasonFee != null
+        ? Number(serverSetting.seasonFee) || 0
+        : Math.ceil(rawFee / unit) * unit;
+      document.getElementById("seasonSettingPreview").innerHTML = [
+        ["場地/場", court],
+        ["球/場", ball],
+        ["本季預估", total],
+        ["季打費", seasonFee]
+      ].map(([label, num]) => `<div class="admin-kpi"><span class="num">${Math.round(num).toLocaleString()}</span><span class="label">${label}</span></div>`).join("");
+    }
+    async function loadSeasonSettingData() {
+      if (!state.adminPassword) return toast("請先開啟管理員功能");
+      const seasonId = value("setSeasonId");
+      const groupId = value("setGroupId");
+      if (!seasonId || !groupId) return toast("請先選擇賽季與季打群組");
+      showActionModal("", "讀取中", "正在讀取期初設定。");
+      try {
+        const data = await apiFetch("v5LoadSeasonSetting", { password: state.adminPassword, seasonId, groupId }, { force: true, noCache: true });
+        if (!data.ok) throw new Error(data.error || "讀取失敗");
+        fillSeasonSetting(data.payload && data.payload.setting);
+        closeActionModal();
+        toast(data.payload && data.payload.exists ? "已讀取期初設定" : "尚未設定，請填寫後儲存");
+      } catch (err) {
+        showActionModal("error", "讀取失敗", err.message || "請稍後再試。");
+      }
+    }
+    async function saveSeasonSettingData() {
+      if (!state.adminPassword) return toast("請先開啟管理員功能");
+      const payload = seasonSettingPayload();
+      if (!payload.seasonId || !payload.groupId) return toast("請先選擇賽季與季打群組");
+      if (!payload.seasonMemberCount) return toast("請輸入季打人數");
+      showActionModal("", "儲存中", "正在儲存期初設定。");
+      try {
+        const data = await apiWrite("v5SaveSeasonSettings", Object.assign({ password: state.adminPassword }, payload));
+        if (!data.ok) throw new Error(data.error || "儲存失敗");
+        fillSeasonSetting(data.payload && data.payload.setting);
+        renderAdminOptions(data.payload && data.payload.admin);
+        fillSeasonSetting(data.payload && data.payload.setting);
+        showActionModal("done", "儲存成功", "期初設定已更新。");
+      } catch (err) {
+        showActionModal("error", "儲存失敗", err.message || "請稍後再試。");
       }
     }
     async function adminUnlock() {
@@ -1659,7 +1811,7 @@
       const ok = await showConfirmDialog({
         title: "建立新聚會",
         name: eventName,
-        message: "建立後會自動加入季打成員，並建立本場支出草稿。",
+        message: "建立後會自動加入季打成員，並依期初設定建立本場支出草稿。",
         okText: "確認建立"
       });
       if (!ok) return;
@@ -1673,10 +1825,7 @@
           groupId,
           ballType: value("newBallType"),
           tempFee: numberValue("newTempFee", 0),
-          seasonId,
-          defaultCourtCount: numberValue("newDefaultCourtCount", 1),
-          defaultHours: numberValue("newDefaultHours", 2),
-          defaultAcHours: numberValue("newDefaultAcHours", 0)
+          seasonId
         });
         if (!data.ok) throw new Error(data.error || "建立失敗");
         renderAdminOptions(data.payload && data.payload.admin);
@@ -1686,7 +1835,7 @@
           renderEvent(data.payload.detail);
         }
         setValue("newEventName", "");
-        showActionModal("done", "建立成功", "新聚會已建立，季打名單與支出草稿已準備。");
+        showActionModal("done", "建立成功", "新聚會已建立，季打名單與本場支出草稿已準備。");
       } catch (err) {
         showActionModal("error", "建立失敗", err.message || "請稍後再試。");
       }
@@ -1860,13 +2009,31 @@
     document.getElementById("submitSignup").addEventListener("click", submitSignup);
     document.getElementById("openTempCancel").addEventListener("click", openTempCancelPicker);
     document.getElementById("adminUnlock").addEventListener("click", adminUnlock);
+    document.getElementById("loadSeasonSettingBtn").addEventListener("click", loadSeasonSettingData);
+    document.getElementById("saveSeasonSettingBtn").addEventListener("click", saveSeasonSettingData);
+    document.getElementById("setSeasonId").addEventListener("change", () => updateSeasonSettingPreview());
+    document.getElementById("setGroupId").addEventListener("change", () => updateSeasonSettingPreview());
     document.getElementById("createEventBtn").addEventListener("click", createAdminEvent);
+    document.getElementById("newEventDate").addEventListener("change", () => autoSelectSeasonForNewEvent(true));
     document.getElementById("editEventId").addEventListener("change", (event) => loadAdminEventData(event.target.value));
     document.getElementById("loadAdminEvent").addEventListener("click", () => loadAdminEventData());
     document.getElementById("saveEventSettings").addEventListener("click", saveAdminEventSettings);
     document.getElementById("saveEventUsage").addEventListener("click", saveAdminEventUsage);
     document.getElementById("closeAdminEvent").addEventListener("click", closeAdminEvent);
     [
+      "setSeasonMemberCount",
+      "setRoundingUnit",
+      "setCourtUnit",
+      "setCourtDiscount",
+      "setCourtCount",
+      "setHoursPerEvent",
+      "setShuttleTubePrice",
+      "setShuttlePerTube",
+      "setEstimatedShuttle",
+      "setAcUnit",
+      "setAcHours",
+      "setMiscFee",
+      "setEstimatedEventCount",
       "usageCourtCount",
       "usageHours",
       "usageBallUsed",
@@ -1878,7 +2045,12 @@
       "usageAcUnit"
     ].forEach((id) => {
       const el = document.getElementById(id);
-      if (el) el.addEventListener("input", () => updateAdminUsagePreview());
+      if (!el) return;
+      if (id.indexOf("set") === 0) {
+        el.addEventListener("input", () => updateSeasonSettingPreview());
+      } else {
+        el.addEventListener("input", () => updateAdminUsagePreview());
+      }
     });
     document.addEventListener("click", (event) => {
       const button = event.target.closest(".cancel-temp");
