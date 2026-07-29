@@ -7,10 +7,10 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-title" content="羽球報名 Alpha">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <title>羽球報名 v5.0.0-alpha.17</title>
+  <title>羽球報名 v5.0.0-alpha.18</title>
   <link rel="manifest" href="./manifest.webmanifest">
-  <link rel="apple-touch-icon" sizes="180x180" href="../icon-180.png?v=5-alpha-17">
-  <link rel="icon" type="image/png" sizes="192x192" href="../icon-192.png?v=5-alpha-17">
+  <link rel="apple-touch-icon" sizes="180x180" href="../icon-180.png?v=5-alpha-18">
+  <link rel="icon" type="image/png" sizes="192x192" href="../icon-192.png?v=5-alpha-18">
   <style>
     :root {
       --ink: #0f172a;
@@ -103,17 +103,18 @@
     .btn-danger { background: var(--btn-danger-bg) !important; color: var(--btn-danger-text) !important; }
     .button-row { display: grid; grid-template-columns: minmax(0, 1fr) 72px; align-items: stretch; gap: 10px; }
     .button-row .icon-button { width: 72px; height: 72px; border-radius: 22px; font-size: 28px; }
-    .roster-title-row { display: grid; grid-template-columns: minmax(0, 1fr) 116px; align-items: center; gap: 12px; }
+    .roster-title-row { display: grid; grid-template-columns: minmax(0, 1fr) 72px; align-items: center; gap: 12px; }
     .roster-title-row h2 { white-space: nowrap; }
     .roster-refresh {
       width: 100%;
-      min-height: 58px;
-      border-radius: 18px;
-      background: var(--btn-info-bg);
-      color: white;
-      font-size: 20px;
+      min-height: 72px;
+      border: 1px solid rgba(37,99,235,.16);
+      border-radius: 22px;
+      background: rgba(255,255,255,.88);
+      color: var(--blue);
+      font-size: 28px;
       white-space: nowrap;
-      box-shadow: 0 14px 28px rgba(10,132,255,.2);
+      box-shadow: 0 12px 28px rgba(15,23,42,.1);
     }
     .primary {
       min-height: 72px;
@@ -231,6 +232,8 @@
     .admin-form select,
     .admin-form textarea {
       width: 100%;
+      max-width: 100%;
+      min-width: 0;
       min-height: 54px;
       border: 1px solid rgba(148,163,184,.28);
       border-radius: 16px;
@@ -240,6 +243,15 @@
       font-size: 20px;
       font-weight: 950;
       outline: none;
+      box-sizing: border-box;
+      overflow: hidden;
+    }
+    .admin-form input[type="date"] {
+      display: block;
+      min-width: 0;
+      max-width: 100%;
+      -webkit-appearance: none;
+      appearance: none;
     }
     .admin-form textarea {
       min-height: 86px;
@@ -284,7 +296,8 @@
       background: rgba(255,255,255,.78);
     }
     .admin-card h3 { margin: 0; font-size: 22px; line-height: 1.15; font-weight: 1000; }
-    .admin-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .admin-grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 10px; }
+    .admin-grid label { min-width: 0; }
     .admin-grid .full,
     .admin-actions .full { grid-column: 1 / -1; }
     .admin-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
@@ -299,6 +312,49 @@
     }
     .admin-kpi .num { display: block; color: #2563c7; font-size: 18px; line-height: 1.1; }
     .admin-kpi .label { display: block; margin-top: 4px; color: #64748b; font-size: 12px; line-height: 1.1; }
+    .admin-shell { padding: 0; overflow: hidden; }
+    .admin-shell summary::-webkit-details-marker { display: none; }
+    .admin-shell-summary {
+      list-style: none;
+      min-height: 92px;
+      padding: 18px;
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto auto;
+      align-items: center;
+      gap: 12px;
+      cursor: pointer;
+    }
+    .admin-shell-kicker { display: block; margin: 0 0 2px; }
+    .admin-shell-title {
+      display: block;
+      font-size: clamp(32px, 8vw, 42px);
+      line-height: 1.04;
+      font-weight: 1000;
+      letter-spacing: 0;
+    }
+    .admin-shell-status {
+      padding: 7px 10px;
+      border-radius: 999px;
+      background: #eef6ff;
+      color: #2563c7;
+      font-size: 13px;
+      font-weight: 1000;
+      white-space: nowrap;
+    }
+    .admin-shell-chevron {
+      width: 34px;
+      height: 34px;
+      display: grid;
+      place-items: center;
+      border-radius: 999px;
+      background: rgba(255,255,255,.88);
+      color: #0f172a;
+      font-size: 20px;
+      font-weight: 1000;
+      transition: transform .16s ease;
+    }
+    .admin-shell[open] .admin-shell-chevron { transform: rotate(180deg); }
+    .admin-shell-body { padding: 0 18px 18px; }
     @media (max-width: 430px) {
       .admin-grid,
       .admin-actions { grid-template-columns: 1fr; }
@@ -607,9 +663,9 @@
 <body>
   <div class="app">
     <header class="hero">
-      <img src="../icon-180.png?v=5-alpha-17" alt="羽球報名">
+      <img src="../icon-180.png?v=5-alpha-18" alt="羽球報名">
       <h1>羽球報名系統</h1>
-      <div class="version">v5 alpha.17</div>
+      <div class="version">v5 alpha.18</div>
     </header>
 
     <section class="panel">
@@ -674,7 +730,7 @@
       <p class="kicker">READ ONLY</p>
       <div class="title-row roster-title-row">
         <h2>名單預覽</h2>
-        <button class="small-button roster-refresh" id="loadRoster" type="button">🔄 重整</button>
+        <button class="small-button roster-refresh" id="loadRoster" type="button" aria-label="重整名單">🔄</button>
       </div>
       <div class="section-list">
         <details class="roster" data-section="confirmed" open>
@@ -701,18 +757,23 @@
       </div>
     </section>
 
-    <section class="panel">
-      <p class="kicker">ADMIN</p>
-      <div class="title-row">
-        <h2>管理員功能</h2>
-      </div>
-      <div class="admin-login">
-        <label>管理員密碼
-          <input id="adminPassword" type="password" autocomplete="current-password" placeholder="請輸入管理員密碼">
-        </label>
-        <button class="admin-button btn-info" id="adminUnlock" type="button">開啟管理功能</button>
-      </div>
-      <div class="admin-area" id="adminArea">
+    <details class="panel admin-shell" id="adminShell">
+      <summary class="admin-shell-summary">
+        <span>
+          <span class="kicker admin-shell-kicker">ADMIN</span>
+          <span class="admin-shell-title">管理員功能</span>
+        </span>
+        <span class="admin-shell-status" id="adminShellStatus">未開啟</span>
+        <span class="admin-shell-chevron">⌄</span>
+      </summary>
+      <div class="admin-shell-body">
+        <div class="admin-login">
+          <label>管理員密碼
+            <input id="adminPassword" type="password" autocomplete="current-password" placeholder="請輸入管理員密碼">
+          </label>
+          <button class="admin-button btn-info" id="adminUnlock" type="button">開啟管理功能</button>
+        </div>
+        <div class="admin-area" id="adminArea">
         <details class="admin-fold" id="adminSeasonFold">
           <summary><span>0. 期初設定</span><span>⌄</span></summary>
           <div class="admin-fold-body admin-form">
@@ -824,7 +885,6 @@
                 <div class="admin-kpi"><span class="num">0</span><span class="label">合計</span></div>
               </div>
               <div class="admin-actions">
-                <button class="admin-button btn-warning" id="resetUsageFromSeason" type="button">依期初設定重新帶入</button>
                 <button class="admin-button btn-primary full" id="saveEventUsage" type="button">儲存本場支出</button>
               </div>
             </div>
@@ -840,8 +900,9 @@
             </div>
           </div>
         </details>
+        </div>
       </div>
-    </section>
+    </details>
   </div>
 
   <div class="sheet" id="eventSheet" aria-hidden="true">
@@ -911,7 +972,7 @@
     };
 
     function cacheKey(api, params) {
-      return "v5-alpha.17:" + api + ":" + JSON.stringify(params || {});
+      return "v5-alpha.18:" + api + ":" + JSON.stringify(params || {});
     }
 
     function readCache(api, params) {
@@ -1794,6 +1855,7 @@
         state.adminPassword = password;
         state.adminUnlocked = true;
         document.getElementById("adminArea").classList.add("show");
+        document.getElementById("adminShellStatus").textContent = "已開啟";
         renderAdminOptions(data.payload);
         closeActionModal();
         toast("管理員功能已開啟");
@@ -2045,7 +2107,6 @@
     document.getElementById("editEventId").addEventListener("change", (event) => loadAdminEventData(event.target.value));
     document.getElementById("loadAdminEvent").addEventListener("click", () => loadAdminEventData());
     document.getElementById("saveEventSettings").addEventListener("click", saveAdminEventSettings);
-    document.getElementById("resetUsageFromSeason").addEventListener("click", resetUsageFromSeasonSetting);
     document.getElementById("saveEventUsage").addEventListener("click", saveAdminEventUsage);
     document.getElementById("closeAdminEvent").addEventListener("click", closeAdminEvent);
     [
