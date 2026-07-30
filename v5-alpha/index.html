@@ -7,10 +7,10 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-title" content="羽球報名 Alpha">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <title>羽球報名 v5.0.0-alpha.24</title>
+  <title>羽球報名 v5.0.0-alpha.25</title>
   <link rel="manifest" href="./manifest.webmanifest">
-  <link rel="apple-touch-icon" sizes="180x180" href="../icon-180.png?v=5-alpha-24">
-  <link rel="icon" type="image/png" sizes="192x192" href="../icon-192.png?v=5-alpha-24">
+  <link rel="apple-touch-icon" sizes="180x180" href="../icon-180.png?v=5-alpha-25">
+  <link rel="icon" type="image/png" sizes="192x192" href="../icon-192.png?v=5-alpha-25">
   <style>
     :root {
       --ink: #0f172a;
@@ -376,6 +376,46 @@
       line-height: 1.35;
       font-weight: 950;
     }
+    .payment-subfold {
+      border-radius: 18px;
+      background: rgba(255,255,255,.78);
+      border: 1px solid rgba(148,163,184,.18);
+      overflow: hidden;
+    }
+    .payment-subfold summary {
+      list-style: none;
+      min-height: 64px;
+      padding: 12px 14px;
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto auto;
+      align-items: center;
+      gap: 8px;
+      font-size: 22px;
+      font-weight: 1000;
+      cursor: pointer;
+    }
+    .payment-subfold summary::-webkit-details-marker { display: none; }
+    .payment-pills {
+      display: inline-flex;
+      align-items: center;
+      justify-content: flex-end;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+    .payment-pill {
+      display: inline-flex;
+      align-items: center;
+      min-height: 30px;
+      padding: 4px 9px;
+      border-radius: 999px;
+      background: #eef6ff;
+      color: #2563c7;
+      font-size: 13px;
+      font-weight: 1000;
+      white-space: nowrap;
+    }
+    .payment-pill.unpaid { background: #fff7ed; color: #9a3412; }
+    .payment-subfold-body { display: grid; gap: 10px; padding: 0 12px 12px; }
     .profit-detail { display: grid; gap: 4px; color: #475569; font-size: 13px; line-height: 1.35; font-weight: 900; }
     .profit-warning { padding: 8px 10px; border-radius: 12px; background: #fff7ed; color: #9a3412; }
     .admin-shell { padding: 0; overflow: hidden; }
@@ -747,9 +787,9 @@
 <body>
   <div class="app">
     <header class="hero">
-      <img src="../icon-180.png?v=5-alpha-24" alt="羽球報名">
+      <img src="../icon-180.png?v=5-alpha-25" alt="羽球報名">
       <h1>羽球報名系統</h1>
-      <div class="version">v5 alpha.24</div>
+      <div class="version">v5 alpha.25</div>
     </header>
 
     <section class="panel">
@@ -910,6 +950,25 @@
               </div>
               <div class="profit-detail" id="seasonWorkflowResult">尚未產生收費單。</div>
             </div>
+            <div class="admin-card">
+              <h3>季末損益</h3>
+              <div class="admin-grid">
+                <label class="full">結算賽季<select id="profitSeasonId"></select></label>
+                <label class="full">季打群組<select id="profitGroupId"></select></label>
+                <label class="full">備註<textarea id="profitNote" placeholder="可空白"></textarea></label>
+              </div>
+              <div class="admin-kpis" id="seasonProfitSummary">
+                <div class="admin-kpi income"><span class="num">0</span><span class="label">季打收入</span></div>
+                <div class="admin-kpi income"><span class="num">0</span><span class="label">臨打收入</span></div>
+                <div class="admin-kpi expense"><span class="num">0</span><span class="label">實際支出</span></div>
+                <div class="admin-kpi"><span class="num">0</span><span class="label">盈虧</span></div>
+              </div>
+              <div class="profit-detail" id="seasonProfitDetail">請選擇賽季與群組後計算。</div>
+              <div class="admin-actions">
+                <button class="admin-button btn-info" id="loadSeasonProfit" type="button">計算損益</button>
+                <button class="admin-button btn-primary" id="saveSeasonProfit" type="button">儲存損益</button>
+              </div>
+            </div>
           </div>
         </details>
 
@@ -954,10 +1013,61 @@
                 <label class="full">聚會備註<textarea id="editEventNote" placeholder="空白則不顯示"></textarea></label>
               </div>
               <div class="admin-actions">
-                <button class="admin-button btn-info" id="saveEventSettings" type="button">儲存設定</button>
-                <button class="admin-button btn-danger" id="closeAdminEvent" type="button">關閉聚會</button>
+                <button class="admin-button btn-info full" id="saveEventSettings" type="button">儲存設定</button>
               </div>
             </div>
+          </div>
+        </details>
+
+        <details class="admin-fold" id="adminPayFold">
+          <summary><span>3. 現場收費管理</span><span>⌄</span></summary>
+          <div class="admin-fold-body">
+            <div class="admin-card">
+              <h3>臨打收費</h3>
+              <div class="admin-kpis" id="tempPaymentSummary">
+                <div class="admin-kpi income"><span class="num">0</span><span class="label">已收</span></div>
+                <div class="admin-kpi"><span class="num">0</span><span class="label">未收</span></div>
+              </div>
+              <div class="admin-actions">
+                <button class="admin-button btn-info full" id="loadTempPayments" type="button">讀取臨打收費</button>
+              </div>
+              <div class="payment-list" id="tempPaymentList"><div class="payment-empty">尚未讀取臨打收費。</div></div>
+              <div class="payment-confirm-note" id="tempPaymentDirtyNote"></div>
+              <div class="admin-actions">
+                <button class="admin-button btn-primary full" id="confirmTempPayments" type="button" disabled>確認臨打收費</button>
+              </div>
+            </div>
+            <details class="payment-subfold" id="seasonPaymentFold">
+              <summary>
+                <span>季打收費</span>
+                <span class="payment-pills" id="seasonPaymentSummaryPills"><span class="payment-pill unpaid">未收 --</span><span class="payment-pill">已收 --</span></span>
+                <span>⌄</span>
+              </summary>
+              <div class="payment-subfold-body">
+                <div class="admin-grid">
+                  <label class="full">收費賽季<select id="seasonPaymentSeasonId"></select></label>
+                  <label class="full">季打群組<select id="seasonPaymentGroupId"></select></label>
+                </div>
+                <div class="admin-mini" id="seasonPaymentInfo">請選擇賽季與季打群組後讀取。</div>
+                <div class="admin-kpis" id="seasonPaymentSummary">
+                  <div class="admin-kpi income"><span class="num">0</span><span class="label">已收</span></div>
+                  <div class="admin-kpi"><span class="num">0</span><span class="label">未收</span></div>
+                </div>
+                <div class="admin-actions">
+                  <button class="admin-button btn-info full" id="loadSeasonPayments" type="button">讀取季打收費</button>
+                </div>
+                <div class="payment-list" id="seasonPaymentList"><div class="payment-empty">尚未讀取季打收費。</div></div>
+                <div class="payment-confirm-note" id="seasonPaymentDirtyNote"></div>
+                <div class="admin-actions">
+                  <button class="admin-button btn-primary full" id="confirmSeasonPayments" type="button" disabled>確認季打收費</button>
+                </div>
+              </div>
+            </details>
+          </div>
+        </details>
+        <details class="admin-fold" id="adminUsageFold">
+          <summary><span>4. 本場實際支出紀錄</span><span>⌄</span></summary>
+          <div class="admin-fold-body admin-form">
             <div class="admin-card">
               <h3>本場實際支出紀錄</h3>
               <div class="admin-mini" id="usageEventSummary">目前聚會：尚未讀取</div>
@@ -987,9 +1097,8 @@
             </div>
           </div>
         </details>
-
-        <details class="admin-fold" id="adminPayFold">
-          <summary><span>3. 收費管理</span><span>⌄</span></summary>
+        <details class="admin-fold" id="adminDailyProfitFold">
+          <summary><span>5. 當天損益</span><span>⌄</span></summary>
           <div class="admin-fold-body">
             <div class="admin-card">
               <h3>當天損益</h3>
@@ -1004,58 +1113,16 @@
                 <button class="admin-button btn-primary full" id="loadDailyProfit" type="button">重計</button>
               </div>
             </div>
+          </div>
+        </details>
+        <details class="admin-fold" id="adminCloseFold">
+          <summary><span>6. 關閉聚會</span><span>⌄</span></summary>
+          <div class="admin-fold-body">
             <div class="admin-card">
-              <h3>臨打收費</h3>
-              <div class="admin-kpis" id="tempPaymentSummary">
-                <div class="admin-kpi income"><span class="num">0</span><span class="label">已收</span></div>
-                <div class="admin-kpi"><span class="num">0</span><span class="label">未收</span></div>
-              </div>
+              <h3>關閉聚會</h3>
+              <div class="admin-mini">建議確認臨打收費、本場實際支出與當天損益後，再關閉聚會。</div>
               <div class="admin-actions">
-                <button class="admin-button btn-info full" id="loadTempPayments" type="button">讀取臨打收費</button>
-              </div>
-              <div class="payment-list" id="tempPaymentList"><div class="payment-empty">尚未讀取臨打收費。</div></div>
-              <div class="payment-confirm-note" id="tempPaymentDirtyNote"></div>
-              <div class="admin-actions">
-                <button class="admin-button btn-primary full" id="confirmTempPayments" type="button" disabled>確認臨打收費</button>
-              </div>
-            </div>
-            <div class="admin-card">
-              <h3>季打收費</h3>
-              <div class="admin-grid">
-                <label class="full">收費賽季<select id="seasonPaymentSeasonId"></select></label>
-                <label class="full">季打群組<select id="seasonPaymentGroupId"></select></label>
-              </div>
-              <div class="admin-mini" id="seasonPaymentInfo">請選擇賽季與季打群組後讀取。</div>
-              <div class="admin-kpis" id="seasonPaymentSummary">
-                <div class="admin-kpi income"><span class="num">0</span><span class="label">已收</span></div>
-                <div class="admin-kpi"><span class="num">0</span><span class="label">未收</span></div>
-              </div>
-              <div class="admin-actions">
-                <button class="admin-button btn-info full" id="loadSeasonPayments" type="button">讀取季打收費</button>
-              </div>
-              <div class="payment-list" id="seasonPaymentList"><div class="payment-empty">尚未讀取季打收費。</div></div>
-              <div class="payment-confirm-note" id="seasonPaymentDirtyNote"></div>
-              <div class="admin-actions">
-                <button class="admin-button btn-primary full" id="confirmSeasonPayments" type="button" disabled>確認季打收費</button>
-              </div>
-            </div>
-            <div class="admin-card">
-              <h3>季末損益</h3>
-              <div class="admin-grid">
-                <label class="full">結算賽季<select id="profitSeasonId"></select></label>
-                <label class="full">季打群組<select id="profitGroupId"></select></label>
-                <label class="full">備註<textarea id="profitNote" placeholder="可空白"></textarea></label>
-              </div>
-              <div class="admin-kpis" id="seasonProfitSummary">
-                <div class="admin-kpi income"><span class="num">0</span><span class="label">季打收入</span></div>
-                <div class="admin-kpi income"><span class="num">0</span><span class="label">臨打收入</span></div>
-                <div class="admin-kpi expense"><span class="num">0</span><span class="label">實際支出</span></div>
-                <div class="admin-kpi"><span class="num">0</span><span class="label">盈虧</span></div>
-              </div>
-              <div class="profit-detail" id="seasonProfitDetail">請選擇賽季與群組後計算。</div>
-              <div class="admin-actions">
-                <button class="admin-button btn-info" id="loadSeasonProfit" type="button">計算損益</button>
-                <button class="admin-button btn-primary" id="saveSeasonProfit" type="button">儲存損益</button>
+                <button class="admin-button btn-danger full" id="closeAdminEvent" type="button">關閉聚會</button>
               </div>
             </div>
           </div>
@@ -1137,7 +1204,7 @@
     };
 
     function cacheKey(api, params) {
-      return "v5-alpha.24:" + SITE + ":" + api + ":" + JSON.stringify(params || {});
+      return "v5-alpha.25:" + SITE + ":" + api + ":" + JSON.stringify(params || {});
     }
 
     function readCache(api, params) {
@@ -2454,6 +2521,12 @@
         <div class="admin-kpi income"><span class="num">${Number(paid || 0)}</span><span class="label">已收</span></div>
         <div class="admin-kpi"><span class="num">${Number(unpaid || 0)}</span><span class="label">未收</span></div>
       `;
+      if (id === "seasonPaymentSummary") {
+        const pills = document.getElementById("seasonPaymentSummaryPills");
+        if (pills) {
+          pills.innerHTML = `<span class="payment-pill unpaid">未收 ${Number(unpaid || 0)}</span><span class="payment-pill">已收 ${Number(paid || 0)}</span>`;
+        }
+      }
     }
     function paymentStatusValue(value) {
       return value === "paid" ? "paid" : "cancelled";
@@ -2482,7 +2555,17 @@
           ? `${type === "season" ? "確認季打收費" : "確認臨打收費"}（${dirtyCount}筆）`
           : `${type === "season" ? "確認季打收費" : "確認臨打收費"}`;
       }
-      if (note) note.textContent = dirtyCount > 0 ? `有 ${dirtyCount} 筆收費變更尚未確認。` : "";
+      if (note) note.textContent = dirtyCount > 0 ? `有 ${dirtyCount} 筆收費變更尚未儲存。` : "";
+    }
+    function commitPaymentRows(type) {
+      const rows = type === "season" ? state.seasonPayments : state.tempPayments;
+      const isSeason = type === "season";
+      (rows || []).forEach((row) => {
+        row._savedPaymentStatus = paymentStatusValue(row.paymentStatus);
+        row._savedAmount = paymentAmountValue(row, isSeason);
+        row._dirty = false;
+      });
+      renderPaymentRows(type, rows || []);
     }
     function renderPaymentRows(type, rows) {
       rows = rows || [];
@@ -2505,7 +2588,7 @@
           <div class="payment-row${row._dirty ? " dirty" : ""}" data-payment-type="${type}" data-payment-index="${index}">
             <div>
               <div class="payment-name">${escapeHtml(row.name || row.memberName || "")}</div>
-              <div class="payment-meta">${escapeHtml(meta)}<span class="payment-dirty"${row._dirty ? "" : " hidden"}>待確認</span></div>
+              <div class="payment-meta">${escapeHtml(meta)}<span class="payment-dirty"${row._dirty ? "" : " hidden"}>待儲存</span></div>
             </div>
             <input class="payment-amount" data-payment-type="${type}" data-payment-index="${index}" type="number" inputmode="numeric" min="0" value="${amount}">
             <label class="payment-switch">
@@ -2548,6 +2631,10 @@
       state.seasonPaymentGroupId = value("seasonPaymentGroupId");
       setPaymentDirtyState("season");
       setPaymentSummary("seasonPaymentSummary", 0, 0);
+      const pills = document.getElementById("seasonPaymentSummaryPills");
+      if (pills) {
+        pills.innerHTML = `<span class="payment-pill unpaid">未收 --</span><span class="payment-pill">已收 --</span>`;
+      }
       const info = document.getElementById("seasonPaymentInfo");
       if (info) info.textContent = "請選擇賽季與季打群組後讀取。";
       const list = document.getElementById("seasonPaymentList");
@@ -2666,14 +2753,18 @@
       const eventId = currentAdminEventId();
       if (!eventId) return toast("請先選擇聚會");
       const items = collectDirtyPayments("temp");
-      if (!items.length) return toast("沒有待確認的臨打收費");
+      if (!items.length) return toast("沒有待儲存的臨打收費");
       showActionModal("", "儲存中", "正在確認臨打收費。");
       try {
         const data = await apiWrite("v5BatchUpdatePaymentStatus", { password: state.adminPassword, eventId, items: JSON.stringify(items) });
         if (!data.ok) throw new Error(data.error || "儲存失敗");
-        renderTempPaymentData(data.payload.paymentData || data.payload);
+        if (data.payload && (data.payload.paymentData || data.payload.temp)) {
+          renderTempPaymentData(data.payload.paymentData || data.payload);
+        } else {
+          commitPaymentRows("temp");
+        }
         await refreshDailyProfitQuiet();
-        showActionModal("done", "完成", `已確認臨打收費 ${Number(data.payload.updatedCount || items.length)} 筆。`);
+        showActionModal("done", "完成", `已確認臨打收費 ${Number((data.payload && data.payload.updatedCount) || items.length)} 筆。`);
       } catch (err) {
         showActionModal("error", "儲存失敗", err.message || "請稍後再試");
       }
@@ -2684,14 +2775,18 @@
       const groupId = state.seasonPaymentGroupId || value("seasonPaymentGroupId");
       if (!seasonId || !groupId) return toast("請先選擇賽季與季打群組");
       const items = collectDirtyPayments("season");
-      if (!items.length) return toast("沒有待確認的季打收費");
+      if (!items.length) return toast("沒有待儲存的季打收費");
       showActionModal("", "儲存中", "正在確認季打收費。");
       try {
         const data = await apiWrite("v5BatchUpdateSeasonPaymentStatus", { password: state.adminPassword, seasonId, groupId, items: JSON.stringify(items) });
         if (!data.ok) throw new Error(data.error || "儲存失敗");
-        renderSeasonPaymentData(data.payload.seasonPaymentData || data.payload);
+        if (data.payload && (data.payload.seasonPaymentData || data.payload.members || data.payload.rows)) {
+          renderSeasonPaymentData(data.payload.seasonPaymentData || data.payload);
+        } else {
+          commitPaymentRows("season");
+        }
         await refreshDailyProfitQuiet();
-        showActionModal("done", "完成", `已確認季打收費 ${Number(data.payload.updatedCount || items.length)} 筆。`);
+        showActionModal("done", "完成", `已確認季打收費 ${Number((data.payload && data.payload.updatedCount) || items.length)} 筆。`);
       } catch (err) {
         showActionModal("error", "儲存失敗", err.message || "請稍後再試");
       }
