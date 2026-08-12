@@ -1,0 +1,25 @@
+{
+  "name": "康軒羽球報名 v5 alpha.31",
+  "short_name": "康軒羽球",
+  "description": "康軒羽球報名正式 PWA",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#eaf6ff",
+  "theme_color": "#4f9bff",
+  "icons": [
+    {
+      "src": "../icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "../icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}

@@ -1,0 +1,25 @@
+{
+  "name": "日安羽球報名 v5 alpha.31",
+  "short_name": "日安羽球",
+  "description": "日安羽球報名正式 PWA",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#ecfdf5",
+  "theme_color": "#22c55e",
+  "icons": [
+    {
+      "src": "../rian-icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "../rian-icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
