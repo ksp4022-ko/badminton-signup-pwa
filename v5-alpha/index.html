@@ -7,10 +7,10 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-title" content="羽球報名 Alpha">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <title>羽球報名 v5.0.0-alpha.30</title>
+  <title>羽球報名 v5.0.0-alpha.31</title>
   <link rel="manifest" href="./manifest.webmanifest">
-  <link rel="apple-touch-icon" sizes="180x180" href="../icon-180.png?v=5-alpha-30">
-  <link rel="icon" type="image/png" sizes="192x192" href="../icon-192.png?v=5-alpha-30">
+  <link rel="apple-touch-icon" sizes="180x180" href="../icon-180.png?v=5-alpha-31">
+  <link rel="icon" type="image/png" sizes="192x192" href="../icon-192.png?v=5-alpha-31">
   <style>
     :root {
       --ink: #0f172a;
@@ -808,9 +808,9 @@
 <body>
   <div class="app">
     <header class="hero">
-      <img id="appIcon" src="../icon-180.png?v=5-alpha-30" alt="羽球報名">
+      <img id="appIcon" src="../icon-180.png?v=5-alpha-31" alt="羽球報名">
       <h1 id="appTitle">羽球報名系統</h1>
-      <div class="version">v5 alpha.30</div>
+      <div class="version">v5 alpha.31</div>
     </header>
 
     <section class="panel" id="currentEventPanel">
@@ -919,6 +919,13 @@
           <button class="admin-button btn-info" id="adminUnlock" type="button">開啟管理功能</button>
         </div>
         <div class="admin-area" id="adminArea">
+        <div class="admin-card">
+          <h3>管理目標聚會</h3>
+          <div class="admin-grid">
+            <label class="full">選擇要管理的聚會<select id="adminTargetEventId"></select></label>
+          </div>
+          <div class="admin-mini">功能 2～6 會使用同一場聚會；可選已關閉聚會補收臨打費或修改支出。</div>
+        </div>
         <details class="admin-fold" id="adminSeasonFold">
           <summary><span>0. 期初設定</span><span>⌄</span></summary>
           <div class="admin-fold-body admin-form">
@@ -1197,15 +1204,15 @@
         appName: "康軒羽球報名",
         shortName: "康軒羽球",
         className: "site-kangxuan",
-        icon180: "../icon-180.png?v=5-alpha-30",
-        icon192: "../icon-192.png?v=5-alpha-30"
+        icon180: "../icon-180.png?v=5-alpha-31",
+        icon192: "../icon-192.png?v=5-alpha-31"
       },
       rian: {
         appName: "日安羽球報名",
         shortName: "日安羽球",
         className: "site-rian",
-        icon180: "../rian-icon-180.png?v=5-alpha-30",
-        icon192: "../rian-icon-192.png?v=5-alpha-30"
+        icon180: "../rian-icon-180.png?v=5-alpha-31",
+        icon192: "../rian-icon-192.png?v=5-alpha-31"
       }
     };
     const SITE_CONFIG = SITE_CONFIGS[SITE] || SITE_CONFIGS.kangxuan;
@@ -1224,6 +1231,7 @@
       adminUnlocked: false,
       adminEvents: [],
       usageEvents: [],
+      adminTargetEventId: "",
       usageEventId: "",
       adminGroups: [],
       adminSeasons: [],
@@ -1236,12 +1244,12 @@
     };
 
     function cacheKey(api, params) {
-      return "v5-alpha.30:" + SITE + ":" + api + ":" + JSON.stringify(params || {});
+      return "v5-alpha.31:" + SITE + ":" + api + ":" + JSON.stringify(params || {});
     }
 
     function applySiteBranding() {
       document.body.classList.add(SITE_CONFIG.className);
-      document.title = SITE_CONFIG.appName + " v5.0.0-alpha.30";
+      document.title = SITE_CONFIG.appName + " v5.0.0-alpha.31";
       const appIcon = document.getElementById("appIcon");
       if (appIcon) {
         appIcon.src = SITE_CONFIG.icon180;
@@ -1564,7 +1572,9 @@
     function renderNoEventSelected() {
       state.selectedEventId = "";
       state.selectedEvent = null;
+      state.adminTargetEventId = "";
       state.usageEventId = "";
+      setValue("adminTargetEventId", "");
       setValue("usageEventId", "");
       document.getElementById("openPicker").textContent = "選擇聚會";
       document.getElementById("eventName").textContent = "尚未選擇聚會";
@@ -1827,6 +1837,7 @@
     async function selectEvent(eventId) {
       if (!eventId) return;
       state.selectedEventId = eventId;
+      state.adminTargetEventId = eventId;
       state.usageEventId = eventId;
       state.sections = {};
       state.preloadingRoster = false;
@@ -2143,7 +2154,13 @@
       setSelectOptions("setGroupId", state.adminGroups, "groupId", (group) => text(group.groupName, group.groupId), "請選擇季打群組");
       setSelectOptions("setSeasonId", state.adminSeasons, "seasonId", (season) => text(season.seasonName, season.seasonId), "請選擇歸屬賽季");
       setSelectOptions("seasonWorkflowSourceSeasonId", state.adminSeasons, "seasonId", (season) => text(season.seasonName, season.seasonId), "不使用退費抵扣");
-      const previousUsageEventId = state.usageEventId || value("usageEventId") || state.selectedEventId;
+      const previousAdminTargetEventId = state.adminTargetEventId || value("adminTargetEventId") || state.selectedEventId;
+      setSelectOptions("adminTargetEventId", state.usageEvents, "eventId", usageEventLabel, "請選擇管理目標聚會");
+      if (previousAdminTargetEventId && state.usageEvents.some((event) => event.eventId === previousAdminTargetEventId)) {
+        setValue("adminTargetEventId", previousAdminTargetEventId);
+        state.adminTargetEventId = previousAdminTargetEventId;
+      }
+      const previousUsageEventId = state.usageEventId || value("usageEventId") || state.adminTargetEventId || state.selectedEventId;
       setSelectOptions("usageEventId", state.usageEvents, "eventId", usageEventLabel, "請選擇支出紀錄聚會");
       if (previousUsageEventId && state.usageEvents.some((event) => event.eventId === previousUsageEventId)) {
         setValue("usageEventId", previousUsageEventId);
@@ -2473,7 +2490,9 @@
       state.adminEventData = payload;
       const event = payload.event || {};
       if (event.eventId) {
+        state.adminTargetEventId = event.eventId;
         state.usageEventId = event.eventId;
+        setValue("adminTargetEventId", event.eventId);
         setValue("usageEventId", event.eventId);
       }
       const usage = payload.usageData && payload.usageData.usage ? payload.usageData.usage : {};
@@ -2590,7 +2609,7 @@
       if (!state.adminPassword) return toast("請先開啟管理員功能");
       const eventId = currentAdminEventId();
       if (!eventId) return toast("請先選擇聚會");
-      const event = state.adminEvents.find((item) => item.eventId === eventId) || {};
+      const event = state.usageEvents.find((item) => item.eventId === eventId) || state.adminEvents.find((item) => item.eventId === eventId) || {};
       const ok = await showConfirmDialog({
         title: "關閉聚會",
         name: optionTitle(event),
@@ -2614,10 +2633,10 @@
       return Math.round(Number(value || 0)).toLocaleString();
     }
     function currentAdminEventId() {
-      return state.selectedEventId || "";
+      return state.adminTargetEventId || value("adminTargetEventId") || state.usageEventId || value("usageEventId") || state.selectedEventId || "";
     }
     function currentUsageEventId() {
-      return state.usageEventId || value("usageEventId") || state.selectedEventId || "";
+      return state.usageEventId || value("usageEventId") || currentAdminEventId();
     }
     function setPaymentSummary(id, paid, unpaid) {
       const el = document.getElementById(id);
@@ -2899,25 +2918,30 @@
       toast("請先在上方選擇聚會");
       return false;
     }
+    function requireAdminTargetEvent() {
+      if (currentAdminEventId()) return true;
+      toast("請先選擇管理目標聚會");
+      return false;
+    }
     async function handleAdminFoldOpen(foldId) {
       if (!state.adminUnlocked) return;
       try {
         if (foldId === "adminEditFold") {
-          if (!requireSelectedAdminEvent()) return;
+          if (!requireAdminTargetEvent()) return;
           await loadAdminEventData();
         } else if (foldId === "adminPayFold") {
-          if (!requireSelectedAdminEvent()) return;
+          if (!requireAdminTargetEvent()) return;
           await loadTempPayments();
         } else if (foldId === "adminUsageFold") {
           if (!currentUsageEventId()) {
-            if (!requireSelectedAdminEvent()) return;
+            if (!requireAdminTargetEvent()) return;
           }
           await loadAdminEventData(currentUsageEventId());
         } else if (foldId === "adminDailyProfitFold") {
-          if (!requireSelectedAdminEvent()) return;
+          if (!requireAdminTargetEvent()) return;
           await loadDailyProfit();
         } else if (foldId === "adminCloseFold") {
-          requireSelectedAdminEvent();
+          requireAdminTargetEvent();
         }
       } catch (err) {}
     }
@@ -2980,8 +3004,17 @@
     document.getElementById("newEventDate").addEventListener("change", () => autoSelectSeasonForNewEvent(true));
     document.getElementById("saveEventSettings").addEventListener("click", saveAdminEventSettings);
     document.getElementById("saveEventUsage").addEventListener("click", saveAdminEventUsage);
+    document.getElementById("adminTargetEventId").addEventListener("change", async () => {
+      state.adminTargetEventId = value("adminTargetEventId");
+      state.usageEventId = state.adminTargetEventId;
+      setValue("usageEventId", state.adminTargetEventId);
+      resetAdminEventDependentState();
+      if (state.adminUnlocked && state.adminTargetEventId) await loadAdminEventData(state.adminTargetEventId);
+    });
     document.getElementById("usageEventId").addEventListener("change", async () => {
       state.usageEventId = value("usageEventId");
+      state.adminTargetEventId = state.usageEventId;
+      setValue("adminTargetEventId", state.usageEventId);
       if (state.adminUnlocked && state.usageEventId) await loadAdminEventData(state.usageEventId);
     });
     document.getElementById("closeAdminEvent").addEventListener("click", closeAdminEvent);
