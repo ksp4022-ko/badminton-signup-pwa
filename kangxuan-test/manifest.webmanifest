@@ -1,13 +1,13 @@
 {
-  "name": "羽球報名系統 v5 alpha.29",
-  "short_name": "羽球報名",
-  "description": "羽球報名 v5 alpha 測試版",
+  "name": "康軒羽球報名 v5 alpha.29",
+  "short_name": "康軒羽球",
+  "description": "康軒羽球報名入口",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",
   "orientation": "portrait-primary",
   "background_color": "#eaf6ff",
-  "theme_color": "#dff1ff",
+  "theme_color": "#4f9bff",
   "icons": [
     {
       "src": "../icon-192.png",
