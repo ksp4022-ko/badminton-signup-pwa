@@ -7,10 +7,10 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-title" content="羽球報名 Alpha">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <title>羽球報名 v5.0.0-alpha.27</title>
+  <title>羽球報名 v5.0.0-alpha.28</title>
   <link rel="manifest" href="./manifest.webmanifest">
-  <link rel="apple-touch-icon" sizes="180x180" href="../icon-180.png?v=5-alpha-27">
-  <link rel="icon" type="image/png" sizes="192x192" href="../icon-192.png?v=5-alpha-27">
+  <link rel="apple-touch-icon" sizes="180x180" href="../icon-180.png?v=5-alpha-28">
+  <link rel="icon" type="image/png" sizes="192x192" href="../icon-192.png?v=5-alpha-28">
   <style>
     :root {
       --ink: #0f172a;
@@ -789,9 +789,9 @@
 <body>
   <div class="app">
     <header class="hero">
-      <img src="../icon-180.png?v=5-alpha-27" alt="羽球報名">
+      <img src="../icon-180.png?v=5-alpha-28" alt="羽球報名">
       <h1>羽球報名系統</h1>
-      <div class="version">v5 alpha.27</div>
+      <div class="version">v5 alpha.28</div>
     </header>
 
     <section class="panel" id="currentEventPanel">
@@ -1066,6 +1066,7 @@
             <div class="admin-card">
               <h3>本場實際支出紀錄</h3>
               <div class="admin-grid">
+                <label class="full">支出紀錄聚會<select id="usageEventId"></select></label>
                 <label class="priority-field">實際用球數<input id="usageBallUsed" type="number" inputmode="numeric" min="0"></label>
                 <label class="priority-field">本場雜資<input id="usageMiscFee" type="number" inputmode="numeric" min="0"></label>
                 <label class="full">歸屬賽季<select id="usageSeasonId"></select></label>
@@ -1186,6 +1187,8 @@
       adminPassword: "",
       adminUnlocked: false,
       adminEvents: [],
+      usageEvents: [],
+      usageEventId: "",
       adminGroups: [],
       adminSeasons: [],
       seasonSettings: [],
@@ -1197,7 +1200,7 @@
     };
 
     function cacheKey(api, params) {
-      return "v5-alpha.27:" + SITE + ":" + api + ":" + JSON.stringify(params || {});
+      return "v5-alpha.28:" + SITE + ":" + api + ":" + JSON.stringify(params || {});
     }
 
     function readCache(api, params) {
@@ -1336,6 +1339,10 @@
       const group = text(event.groupName, "");
       return [formatDate(event.eventDate), weekday(event.eventDate), group].filter(Boolean).join("｜");
     }
+    function usageEventLabel(event) {
+      const status = event && event.isActive === false ? "已關閉" : "開放中";
+      return `${optionTitle(event)}｜${formatDate(event.eventDate)}｜${weekday(event.eventDate)}｜${status}`;
+    }
     function eventExtra(event) {
       const fee = Number(event.tempFee) || 0;
       const max = Number(event.maxPeople) || 0;
@@ -1428,10 +1435,11 @@
       }
     }
     function collapseRosterSections() {
+      const placeholder = state.selectedEventId ? "點開才讀取名單" : "請先選擇聚會";
       const placeholders = {
-        confirmedList: "點開正式名單才讀取名單",
-        waitingList: "點開候補名單才讀取名單",
-        leaveList: "點開季打請假才讀取名單"
+        confirmedList: placeholder,
+        waitingList: placeholder,
+        leaveList: placeholder
       };
       document.querySelectorAll("details.roster").forEach((detail) => { detail.open = false; });
       Object.keys(placeholders).forEach((id) => {
@@ -1502,6 +1510,8 @@
     function renderNoEventSelected() {
       state.selectedEventId = "";
       state.selectedEvent = null;
+      state.usageEventId = "";
+      setValue("usageEventId", "");
       document.getElementById("openPicker").textContent = "選擇聚會";
       document.getElementById("eventName").textContent = "尚未選擇聚會";
       document.getElementById("eventDate").textContent = "請先選擇聚會";
@@ -1763,6 +1773,7 @@
     async function selectEvent(eventId) {
       if (!eventId) return;
       state.selectedEventId = eventId;
+      state.usageEventId = eventId;
       state.sections = {};
       state.preloadingRoster = false;
       closeAdminFolds();
@@ -2069,6 +2080,7 @@
     function renderAdminOptions(payload) {
       payload = payload || {};
       state.adminEvents = payload.events || state.adminEvents || [];
+      state.usageEvents = payload.usageEvents || payload.events || state.usageEvents || [];
       state.adminGroups = payload.groups || state.adminGroups || [];
       state.adminSeasons = payload.seasons || state.adminSeasons || [];
       state.seasonSettings = payload.seasonSettings || state.seasonSettings || [];
@@ -2077,6 +2089,12 @@
       setSelectOptions("setGroupId", state.adminGroups, "groupId", (group) => text(group.groupName, group.groupId), "請選擇季打群組");
       setSelectOptions("setSeasonId", state.adminSeasons, "seasonId", (season) => text(season.seasonName, season.seasonId), "請選擇歸屬賽季");
       setSelectOptions("seasonWorkflowSourceSeasonId", state.adminSeasons, "seasonId", (season) => text(season.seasonName, season.seasonId), "不使用退費抵扣");
+      const previousUsageEventId = state.usageEventId || value("usageEventId") || state.selectedEventId;
+      setSelectOptions("usageEventId", state.usageEvents, "eventId", usageEventLabel, "請選擇支出紀錄聚會");
+      if (previousUsageEventId && state.usageEvents.some((event) => event.eventId === previousUsageEventId)) {
+        setValue("usageEventId", previousUsageEventId);
+        state.usageEventId = previousUsageEventId;
+      }
       setSelectOptions("usageSeasonId", state.adminSeasons, "seasonId", (season) => text(season.seasonName, season.seasonId), "請選擇歸屬賽季");
       setSelectOptions("seasonPaymentSeasonId", state.adminSeasons, "seasonId", (season) => text(season.seasonName, season.seasonId), "請選擇收費賽季");
       setSelectOptions("seasonPaymentGroupId", state.adminGroups, "groupId", (group) => text(group.groupName, group.groupId), "請選擇季打群組");
@@ -2400,6 +2418,10 @@
       payload = payload || {};
       state.adminEventData = payload;
       const event = payload.event || {};
+      if (event.eventId) {
+        state.usageEventId = event.eventId;
+        setValue("usageEventId", event.eventId);
+      }
       const usage = payload.usageData && payload.usageData.usage ? payload.usageData.usage : {};
       setValue("editMaxPeople", event.maxPeople || "");
       setValue("editBallType", event.ballType || "");
@@ -2483,8 +2505,8 @@
     }
     async function saveAdminEventUsage() {
       if (!state.adminPassword) return toast("請先開啟管理員功能");
-      const eventId = currentAdminEventId();
-      if (!eventId) return toast("請先選擇聚會");
+      const eventId = currentUsageEventId();
+      if (!eventId) return toast("請先選擇支出紀錄聚會");
       showActionModal("", "儲存中", "正在儲存本場支出紀錄。");
       try {
         const data = await apiWrite("v5UpdateEventUsage", {
@@ -2539,6 +2561,9 @@
     }
     function currentAdminEventId() {
       return state.selectedEventId || "";
+    }
+    function currentUsageEventId() {
+      return state.usageEventId || value("usageEventId") || state.selectedEventId || "";
     }
     function setPaymentSummary(id, paid, unpaid) {
       const el = document.getElementById(id);
@@ -2830,8 +2855,10 @@
           if (!requireSelectedAdminEvent()) return;
           await loadTempPayments();
         } else if (foldId === "adminUsageFold") {
-          if (!requireSelectedAdminEvent()) return;
-          await loadAdminEventData();
+          if (!currentUsageEventId()) {
+            if (!requireSelectedAdminEvent()) return;
+          }
+          await loadAdminEventData(currentUsageEventId());
         } else if (foldId === "adminDailyProfitFold") {
           if (!requireSelectedAdminEvent()) return;
           await loadDailyProfit();
@@ -2899,6 +2926,10 @@
     document.getElementById("newEventDate").addEventListener("change", () => autoSelectSeasonForNewEvent(true));
     document.getElementById("saveEventSettings").addEventListener("click", saveAdminEventSettings);
     document.getElementById("saveEventUsage").addEventListener("click", saveAdminEventUsage);
+    document.getElementById("usageEventId").addEventListener("change", async () => {
+      state.usageEventId = value("usageEventId");
+      if (state.adminUnlocked && state.usageEventId) await loadAdminEventData(state.usageEventId);
+    });
     document.getElementById("closeAdminEvent").addEventListener("click", closeAdminEvent);
     document.getElementById("loadDailyProfit").addEventListener("click", loadDailyProfit);
     document.getElementById("loadSeasonProfit").addEventListener("click", loadSeasonProfit);
