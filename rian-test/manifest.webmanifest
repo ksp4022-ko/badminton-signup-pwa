@@ -1,13 +1,13 @@
 {
-  "name": "日安羽球報名 v5 alpha.29",
+  "name": "日安羽球報名 v5 alpha.30",
   "short_name": "日安羽球",
   "description": "日安羽球報名入口",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",
   "orientation": "portrait-primary",
-  "background_color": "#fff7ed",
-  "theme_color": "#f97316",
+  "background_color": "#ecfdf5",
+  "theme_color": "#22c55e",
   "icons": [
     {
       "src": "../rian-icon-192.png",
